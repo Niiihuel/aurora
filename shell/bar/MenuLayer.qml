@@ -77,6 +77,7 @@ PanelWindow {
         case "battery": return batteryMenu;
         case "system": return systemMenu;
         case "controlCenter": return controlCenterMenu;
+        case "notifications": return notificationCenter;
         default: return null;
         }
     }
@@ -388,6 +389,11 @@ PanelWindow {
     Component {
         id: systemMenu
         SystemMenu { chrome: false; backdrop: menuBackdrop }
+    }
+
+    Component {
+        id: notificationCenter
+        NotificationCenter { backdrop: menuBackdrop }
     }
 
     Component {

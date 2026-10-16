@@ -65,6 +65,9 @@ A surface that grows out of the bar (menu, panel) is laid out at its full size w
 ## 6. Small traps
 
 - `pragma ComponentBehavior: Bound`: access child ids bare (`cursorFile.text()`), never as `root.cursorFile`.
+- **QML ids shadow properties.** Inside an element, `backdrop: backdrop` assigns the element's own (null) property, and a Column with `id: text` makes a child Text's `text.length` mean the Column. Give ids distinct names (`bannerBackdrop`, `textColumn`).
+- Notifications: only one process can own org.freedesktop.Notifications; a NotificationServer created even for a moment keeps retrying and grabs the name when the owner restarts. Quickshell re-delivers kept notifications after a hot reload with `lastGeneration` set — don't banner those again.
+- Icons: `Quickshell.iconPath(name, true)` (checked) is the reliable lookup; a long-running process once kept negative results (Discord/Cursor "missing" until restart). App icons that are absolute paths need `file://`; a missing themed icon "loads" as an empty image, so check the checked form instead of `Image.status`.
 - Hyprland's Lua config rejects `hyprctl keyword`; use `hyprctl eval '<lua>'`. Mirrored outputs only show in `hyprctl monitors all`.
 - **Layer shells and Hyprland input** (read from Hyprland's source, `LayerSurface.cpp`/`InputManager.cpp`):
   - While any layer is `WlrKeyboardFocus.Exclusive`, Hyprland sends *every* pointer event to exclusive layers. Exclusive is right for modal dialogs, wrong for a menu: the bar under it never hears a click or hover.

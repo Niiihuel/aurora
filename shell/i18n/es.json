@@ -70,5 +70,16 @@
   "network.forget": "Olvidar esta red…",
   "network.forget.title": "¿Olvidar la red Wi-Fi “{name}”?",
   "network.forget.message": "Esta computadora ya no se conectará sola a esta red y necesitarás la contraseña para volver a conectarte.",
-  "network.forget.action": "Olvidar"
+  "network.forget.action": "Olvidar",
+  "notifications.now": "ahora",
+  "notifications.minutesAgo": "hace {n} min",
+  "notifications.clearAll": "Borrar todo",
+  "notifications.empty": "No hay notificaciones",
+  "launcher.placeholder": "Buscar",
+  "launcher.applications": "Aplicaciones",
+  "launcher.suggestions": "Sugerencias",
+  "launcher.clipboard": "Portapapeles",
+  "launcher.calculator": "Calculadora",
+  "launcher.noResults": "Sin resultados",
+  "launcher.image": "Imagen {size}"
 }

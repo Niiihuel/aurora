@@ -175,6 +175,8 @@ PanelWindow {
             }
 
             BarItem {
+                menu: "notifications"
+                screenName: bar.modelData.name
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: bar.clockText

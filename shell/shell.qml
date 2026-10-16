@@ -4,6 +4,8 @@ import Quickshell.Io
 import "bar"
 import "core"
 import "dialogs"
+import "launcher"
+import "notifications"
 import "services"
 
 /**
@@ -28,6 +30,9 @@ ShellRoot {
         value: Quickshell.screens.length ? Wallpaper.pathFor(Quickshell.screens[0].name) : ""
     }
 
+    Banners {}
+    Launcher { id: launcher }
+
     WifiPasswordDialog {}
     ConfirmDialog {}
 
@@ -37,6 +42,8 @@ ShellRoot {
         target: "aurora"
         function menu(id: string): void { Menus.request(id); }
         function closeMenu(): void { Menus.close(); }
+        // `launcher apps` / `launcher clipboard`: open that mode (or close it if it's showing).
+        function launcher(mode: string): void { launcher.toggle(mode.length ? mode : "apps"); }
         // `controlCenter network` opens Control Center on that page ("" for the grid).
         function controlCenter(page: string): void { Menus.page = page; Menus.request("controlCenter"); }
         function activeMenu(): string { return Menus.active; }

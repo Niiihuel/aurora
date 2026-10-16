@@ -6,3 +6,5 @@ singleton AudioStatus 1.0 AudioStatus.qml
 singleton Session 1.0 Session.qml
 singleton DisplayStatus 1.0 DisplayStatus.qml
 singleton MediaStatus 1.0 MediaStatus.qml
+singleton Notifications 1.0 Notifications.qml
+singleton Apps 1.0 Apps.qml

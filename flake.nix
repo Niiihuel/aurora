@@ -41,6 +41,11 @@
           ${pkgs.nodejs}/bin/node ${./shell/core}/accent.test.mjs
           touch $out
         '';
+        # The launcher's search and calculator (shell/core/search.mjs).
+        search = pkgs.runCommand "aurora-search-check" { } ''
+          ${pkgs.nodejs}/bin/node ${./shell/core}/search.test.mjs
+          touch $out
+        '';
       };
 
       devShells.${system}.default = pkgs.mkShell {

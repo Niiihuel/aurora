@@ -193,6 +193,36 @@ Singleton {
         { d: "M14.5 3.75 L8 8 L14.5 12.25 Z M8 3.75 L1.5 8 L8 12.25 Z", fill: true }
     ]
 
+    // --- Notifications and the launcher ---------------------------------------
+
+    /** Close / clear. */
+    readonly property var xmark: [
+        { d: "M4.25 4.25 L11.75 11.75 M11.75 4.25 L4.25 11.75" }
+    ]
+    /** A bell, for a notification whose app has no icon. */
+    readonly property var bell: [
+        { d: "M4 11.25 V7.25 A4 4 0 0 1 12 7.25 V11.25 L13.25 12.5 H2.75 Z" },
+        { d: "M6.75 14 A1.4 1.4 0 0 0 9.25 14" }
+    ]
+    /** Search. */
+    readonly property var magnifier: [
+        { d: "M7 2.25 A4.75 4.75 0 1 1 7 11.75 A4.75 4.75 0 1 1 7 2.25 Z" },
+        { d: "M10.5 10.5 L14 14" }
+    ]
+    /** Applications: a 2×2 grid of rounded squares. */
+    readonly property var apps: [
+        { d: "M2.5 2.5 H6.75 V6.75 H2.5 Z M9.25 2.5 H13.5 V6.75 H9.25 Z M2.5 9.25 H6.75 V13.5 H2.5 Z M9.25 9.25 H13.5 V13.5 H9.25 Z" }
+    ]
+    /** Clipboard history. */
+    readonly property var clipboard: [
+        { d: "M5.5 2.75 H3.75 A1 1 0 0 0 2.75 3.75 V13.75 A1 1 0 0 0 3.75 14.75 H12.25 A1 1 0 0 0 13.25 13.75 V3.75 A1 1 0 0 0 12.25 2.75 H10.5" },
+        { d: "M5.5 1.5 H10.5 V4 H5.5 Z M5.25 8 H10.75 M5.25 11 H9" }
+    ]
+    /** Calculator result. */
+    readonly property var equals: [
+        { d: "M3.5 6 H12.5 M3.5 10 H12.5" }
+    ]
+
     /** Lightning bolt drawn over the battery while charging. */
     readonly property var bolt: [
         { d: "M9 1.5 L4.5 8.75 H7.75 L6.75 14.5 L11.5 7 H8.25 Z", fill: true }

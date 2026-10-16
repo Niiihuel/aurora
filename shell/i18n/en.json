@@ -70,5 +70,16 @@
   "network.forget": "Forget This Network…",
   "network.forget.title": "Forget Wi-Fi network “{name}”?",
   "network.forget.message": "This computer will no longer join this network on its own, and you'll need its password to join it again.",
-  "network.forget.action": "Forget"
+  "network.forget.action": "Forget",
+  "notifications.now": "now",
+  "notifications.minutesAgo": "{n} min ago",
+  "notifications.clearAll": "Clear All",
+  "notifications.empty": "No Notifications",
+  "launcher.placeholder": "Search",
+  "launcher.applications": "Applications",
+  "launcher.suggestions": "Suggestions",
+  "launcher.clipboard": "Clipboard",
+  "launcher.calculator": "Calculator",
+  "launcher.noResults": "No Results",
+  "launcher.image": "Image {size}"
 }
