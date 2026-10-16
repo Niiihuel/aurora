@@ -247,5 +247,5 @@ PanelWindow {
         precision: SystemClock.Seconds
     }
 
-    readonly property string clockText: I18n.locale.toString(clock.date, "ddd d MMM H:mm:ss")
+    readonly property string clockText: I18n.locale.toString(clock.date, Settings.clockSeconds ? "ddd d MMM H:mm:ss" : "ddd d MMM H:mm")
 }

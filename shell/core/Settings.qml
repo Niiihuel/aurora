@@ -35,6 +35,16 @@ Singleton {
     property alias batteryPercent: adapter.batteryPercent
     /** Do Not Disturb: notifications arrive silently, without banners. */
     property alias doNotDisturb: adapter.doNotDisturb
+    /** Play a sound when a notification arrives. */
+    property alias notificationSounds: adapter.notificationSounds
+    /** Show seconds in the menu bar clock. */
+    property alias clockSeconds: adapter.clockSeconds
+    /** Night light colour temperature, kelvin. */
+    property alias nightLightTemperature: adapter.nightLightTemperature
+    /** Minutes of inactivity before the screen turns off / the session locks / the computer sleeps; 0 = never. */
+    property alias idleScreenOff: adapter.idleScreenOff
+    property alias idleLock: adapter.idleLock
+    property alias idleSuspend: adapter.idleSuspend
 
     readonly property bool dark: appearance !== "light"
 
@@ -61,6 +71,12 @@ Singleton {
             property string locale: ""
             property bool batteryPercent: true
             property bool doNotDisturb: false
+            property bool notificationSounds: true
+            property bool clockSeconds: true
+            property int nightLightTemperature: 4500
+            property int idleScreenOff: 10
+            property int idleLock: 0
+            property int idleSuspend: 0
         }
     }
 }

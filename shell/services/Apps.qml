@@ -13,7 +13,30 @@ import "../core/search.mjs" as Search
 Singleton {
     id: root
 
-    readonly property var entries: DesktopEntries.applications.values.filter(e => !e.noDisplay)
+    /**
+     * The visible apps. The model's `values` doesn't announce changes (a new
+     * process scans the desktop files after it starts), so this re-reads them
+     * whenever an entry comes or goes.
+     */
+    property var entries: []
+    function reload() {
+        entries = DesktopEntries.applications.values.filter(e => !e.noDisplay);
+    }
+    Component.onCompleted: reload()
+    Timer {
+        id: reloadSoon
+        interval: 100
+        onTriggered: root.reload()
+    }
+    Connections {
+        target: DesktopEntries.applications
+        function onObjectInsertedPost() { reloadSoon.restart(); }
+        function onObjectRemovedPost() { reloadSoon.restart(); }
+    }
+    Connections {
+        target: DesktopEntries
+        function onApplicationsChanged() { reloadSoon.restart(); }
+    }
 
     function iconFor(entry) {
         if (!entry || !entry.icon)

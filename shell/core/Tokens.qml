@@ -98,6 +98,16 @@ Singleton {
     readonly property var controlCenter: ({ width: 292, padding: 0, gap: 12, radius: 22, toggle: 36 })
     readonly property color platter: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(1, 1, 1, 0.45)
     readonly property color platterHighlight: dark ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.70)
+    /** Settings: a group of rows on the window's background. */
+    readonly property color groupFill: dark ? Qt.rgba(1, 1, 1, 0.055) : Qt.rgba(1, 1, 1, 0.85)
+    /** Settings: the window's own background, behind the content. */
+    readonly property color windowFill: dark ? "#1E1E20" : "#ECECEF"
+
+    /** A neutral (system gray) tile, e.g. a settings icon that has no colour of its own. */
+    readonly property color neutral: dark ? "#636366" : "#8E8E93"
+    /** The window controls: close, minimize, zoom (macOS's fixed colours). */
+    readonly property var windowControls: ({ close: "#FF5F57", minimize: "#FEBC2E", zoom: "#28C840" })
+
     /** A round toggle that is off. */
     readonly property color toggleOff: dark ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(0, 0, 0, 0.08)
 

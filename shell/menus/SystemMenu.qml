@@ -23,7 +23,7 @@ MenuPanel {
 
     MenuItem {
         text: I18n.tr("system.settings")
-        enabled: false
+        onTriggered: Session.openSettings("general")
     }
 
     MenuSeparator {}

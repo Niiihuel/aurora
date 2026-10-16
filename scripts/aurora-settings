@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Open aurora's Settings, optionally on a page (wifi, sound, appearance…):
+# bring the running app to that page and to the front, or start it.
+set -u
+cfg="$(cd "$(dirname "$0")/../shell" && pwd)/settings.qml"
+page="${1:-}"
+
+if qs -p "$cfg" ipc call settings open "$page" >/dev/null 2>&1; then
+    # aurora's only app window (Quickshell FloatingWindow) is Settings.
+    addr=$(hyprctl clients -j | jq -r '.[] | select(.class == "org.quickshell") | .address' | head -n1)
+    [ -n "$addr" ] && hyprctl dispatch "hl.dsp.focus({ window = 'address:$addr' })" >/dev/null
+else
+    AURORA_SETTINGS_PAGE="$page" qs -p "$cfg" -d >/dev/null 2>&1
+fi

@@ -71,6 +71,6 @@ MenuPanel {
 
     MenuItem {
         text: I18n.tr("bluetooth.settings")
-        enabled: false
+        onTriggered: Session.openSettings("bluetooth")
     }
 }

@@ -40,6 +40,11 @@ Item {
     /** Backdrop blur, standard deviation in points. */
     property real blur: Tokens.glass.regular.blur
     property bool captureWindows: true
+    /**
+     * A process whose windows are left out: a glass inside an app window
+     * (Settings' sidebar) must not capture the window it is drawn in.
+     */
+    property int excludePid: 0
     /** How often windows under the glass are re-captured. */
     property int captureFps: 30
 
@@ -81,6 +86,8 @@ Item {
         for (const t of Hyprland.toplevels.values) {
             const o = t.lastIpcObject;
             if (!o || !o.at || !o.size || !t.wayland || o.hidden || o.mapped === false)
+                continue;
+            if (root.excludePid > 0 && o.pid === root.excludePid)
                 continue;
             if (o.monitor !== mon.id || !o.workspace || o.workspace.id !== workspace)
                 continue;

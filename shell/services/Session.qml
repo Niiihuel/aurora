@@ -18,4 +18,6 @@ Singleton {
     function restart() { Quickshell.execDetached(["systemctl", "reboot"]); }
     function shutDown() { Quickshell.execDetached(["systemctl", "poweroff"]); }
     function logOut() { Hyprland.dispatch("hl.dsp.exit()"); }
+    /** Open aurora's Settings on a page ("wifi", "sound"…), or bring it forward. */
+    function openSettings(page) { Quickshell.execDetached([Quickshell.shellDir + "/../scripts/aurora-settings", page || ""]); }
 }

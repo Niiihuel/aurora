@@ -92,7 +92,7 @@ Singleton {
 
     function chime(n, critical) {
         const hints = n.hints || {};
-        if (hints["suppress-sound"])
+        if (!Settings.notificationSounds || hints["suppress-sound"])
             return;
         const dir = "/run/current-system/sw/share/sounds/freedesktop/stereo/";
         const file = hints["sound-file"] ? String(hints["sound-file"])

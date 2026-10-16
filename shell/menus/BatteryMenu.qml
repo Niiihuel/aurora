@@ -68,6 +68,6 @@ MenuPanel {
 
     MenuItem {
         text: I18n.tr("battery.settings")
-        enabled: false
+        onTriggered: Session.openSettings("battery")
     }
 }

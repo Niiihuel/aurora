@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "../core"
 
 /**
  * The built-in display for Control Center: backlight brightness and the night
@@ -30,7 +31,9 @@ Singleton {
     property int keyboardLevel: 0
     property int keyboardMax: 0
     readonly property bool hasKeyboardLight: keyboardDevice.length > 0 && keyboardMax > 0
-    readonly property int nightTemperature: 4500
+    readonly property int nightTemperature: Settings.nightLightTemperature
+    // A new temperature applies at once while the night light is on.
+    onNightTemperatureChanged: if (nightLight) setNightLight(true)
 
     /** Read both again (the brightness keys change them behind our back). */
     function refresh() {

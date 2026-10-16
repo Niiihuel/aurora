@@ -44,8 +44,26 @@ Singleton {
         Pipewire.preferredDefaultAudioSink = node;
     }
 
+    // --- Input (microphone) -----------------------------------------------------
+
+    readonly property var source: Pipewire.defaultAudioSource
+    readonly property bool inputReady: !!source && !!source.audio
+    readonly property real inputVolume: inputReady ? source.audio.volume : 0
+    readonly property bool inputMuted: inputReady ? source.audio.muted : false
+    readonly property var inputs: Pipewire.nodes.values
+        .filter(n => !n.isSink && !n.isStream && n.audio)
+        .sort((a, b) => nameOf(a).localeCompare(nameOf(b)))
+
+    function setInputVolume(v) {
+        if (inputReady)
+            source.audio.volume = Math.max(0, Math.min(1, v));
+    }
+    function setInput(node) {
+        Pipewire.preferredDefaultAudioSource = node;
+    }
+
     // A node's audio properties are only live while something tracks it.
     PwObjectTracker {
-        objects: root.outputs.concat(root.sink ? [root.sink] : [])
+        objects: root.outputs.concat(root.sink ? [root.sink] : [], root.inputs, root.source ? [root.source] : [])
     }
 }

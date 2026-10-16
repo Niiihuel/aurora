@@ -222,6 +222,29 @@ Singleton {
     readonly property var arrowRight: [
         { d: "M3 8 H13 M8.75 3.75 L13 8 L8.75 12.25" }
     ]
+    // --- Settings ---------------------------------------------------------------
+
+    readonly property var gear: [
+        { d: "M8 5.5 A2.5 2.5 0 1 1 8 10.5 A2.5 2.5 0 1 1 8 5.5 Z" },
+        { d: "M8 1.5 V3.25 M8 12.75 V14.5 M1.5 8 H3.25 M12.75 8 H14.5 M3.4 3.4 L4.65 4.65 M11.35 11.35 L12.6 12.6 M3.4 12.6 L4.65 11.35 M11.35 4.65 L12.6 3.4" }
+    ]
+    /** Accessibility: a person with open arms. */
+    readonly property var person: [
+        { d: "M8 1.75 A1.5 1.5 0 1 1 8 4.75 A1.5 1.5 0 1 1 8 1.75 Z", fill: true },
+        { d: "M2.75 6 L8 7 L13.25 6 M8 7 V10 M8 10 L5.75 14.25 M8 10 L10.25 14.25" }
+    ]
+    /** Wallpaper: a picture with a mountain and a sun. */
+    readonly property var photo: [
+        { d: "M2 3.25 H14 V12.75 H2 Z" },
+        { d: "M2 11 L6 7.25 L9 10 L10.75 8.5 L14 11.25" },
+        { d: "M11 4.75 A1.1 1.1 0 1 1 11 6.95 A1.1 1.1 0 1 1 11 4.75 Z", fill: true }
+    ]
+    /** Language and region: a globe. */
+    readonly property var globe: [
+        { d: "M8 1.75 A6.25 6.25 0 1 1 8 14.25 A6.25 6.25 0 1 1 8 1.75 Z" },
+        { d: "M1.75 8 H14.25 M8 1.75 C5.75 4 5.75 12 8 14.25 C10.25 12 10.25 4 8 1.75" }
+    ]
+
     /** Calculator result. */
     readonly property var equals: [
         { d: "M3.5 6 H12.5 M3.5 10 H12.5" }

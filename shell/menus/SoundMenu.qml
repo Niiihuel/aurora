@@ -39,9 +39,8 @@ MenuPanel {
 
     MenuSeparator {}
 
-    // Disabled until aurora has a settings app; shown so the menu reads complete.
     MenuItem {
         text: I18n.tr("sound.settings")
-        enabled: false
+        onTriggered: Session.openSettings("sound")
     }
 }

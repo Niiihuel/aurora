@@ -50,6 +50,6 @@ Item {
         size: 11
         glyph: Glyphs.bolt
         // Drawn in the opposite ink so it reads on top of the fill.
-        color: Tokens.dark ? "#1C1C1E" : "#FFFFFF"
+        color: Tokens.solidFill
     }
 }

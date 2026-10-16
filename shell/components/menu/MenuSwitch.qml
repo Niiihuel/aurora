@@ -1,27 +1,52 @@
 import QtQuick
-import QtQuick.Effects
 import "../../core"
 import ".."
 
 /**
- * macOS switch: accent track when on, quiet fill when off, a white knob that
- * slides on the snappy spring. While pressed the knob grows a little, the
- * same response as interactive glass. Emits `toggled(on)`; the owner applies
- * the change and feeds `checked` back, so the switch always shows real state.
+ * macOS Tahoe's switch in aurora's liquid glass: the accent track when on, a
+ * quiet one when off, and a capsule knob that is solid white at rest. While
+ * pressed or sliding the knob lifts into a clear lens (like the slider's
+ * thumb and the segmented control's knob) over a hidden copy of the track,
+ * so the accent fill shows magnified through it, then settles back on the
+ * snappy spring. Emits `toggled(on)`; the owner applies the change and feeds
+ * `checked` back, so the switch always shows the real state.
  */
 Item {
     id: root
 
     property bool checked: false
+    property Item backdrop: null
     signal toggled(bool on)
 
-    implicitWidth: 32
-    implicitHeight: 19
+    implicitWidth: 38
+    implicitHeight: 22
 
     SpringValue {
         id: pos
         to: root.checked ? 1 : 0
         preset: Motion.snappy
+    }
+
+    readonly property real knobWidth: 24
+    readonly property real knobX: 2 + pos.value * (width - knobWidth - 4)
+    /** How "on" the track looks: follows the knob, so the fill grows with it. */
+    readonly property real fill: Math.max(0, Math.min(1, pos.value))
+
+    // The track as the lifted knob sees it: hidden from the scene, lensed only.
+    Item {
+        id: trackCopy
+        anchors.fill: parent
+        Rectangle {
+            anchors.fill: parent
+            radius: height / 2
+            color: Tokens.dark ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(0, 0, 0, 0.16)
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius
+                color: Tokens.accent
+                opacity: root.fill
+            }
+        }
     }
 
     Rectangle {
@@ -32,29 +57,25 @@ Item {
             anchors.fill: parent
             radius: parent.radius
             color: Tokens.accent
-            opacity: pos.value
+            opacity: root.fill
         }
     }
 
-    RectangularShadow {
-        anchors.fill: knob
-        radius: knob.radius
-        offset: Qt.vector2d(0, 0.5)
-        blur: 2
-        color: Qt.rgba(0, 0, 0, 0.3)
-        scale: knob.scale
-    }
-
-    Rectangle {
-        id: knob
-        width: root.height - 4
-        height: width
-        radius: width / 2
-        y: 2
-        x: 2 + pos.value * (root.width - width - 4)
-        color: "white"
-        scale: touch.pressed && !Motion.reduced ? 1.12 : 1
-        Behavior on scale { NumberAnimation { duration: Motion.hover; easing.type: Motion.easeOut } }
+    Glass {
+        x: root.knobX
+        y: 3
+        width: root.knobWidth
+        height: root.height - 6
+        radius: height / 2
+        backdrop: root.backdrop
+        refracts: trackCopy
+        hideRefracted: true
+        material: Tokens.glass.sliderKnob
+        liftedMaterial: Tokens.glass.lens
+        held: touch.pressed || !pos.settled
+        pressScale: 1.3
+        shadow: false
+        track: [x, root.fill]
     }
 
     MouseArea {

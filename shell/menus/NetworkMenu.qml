@@ -134,7 +134,7 @@ MenuPanel {
     MenuItem {
         visible: !root.detail
         text: I18n.tr("network.settings")
-        enabled: false
+        onTriggered: Session.openSettings("wifi")
     }
 
     // --- A network's details -------------------------------------------------------
