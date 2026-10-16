@@ -173,10 +173,8 @@
   "settings.wallpaper.yours": "Tus fondos",
   "settings.wallpaper.note": "De ~/wallpapers. Super+C abre el selector rápido.",
   "settings.apps.updates": "Actualizaciones",
-  "settings.apps.updatesNote": "Actualizar trae los paquetes más nuevos a ~/dotfiles (flake.lock) y reconstruye el sistema; te pide la contraseña.",
-  "settings.apps.updateAll": "Actualizar apps y sistema",
-  "settings.apps.update": "Actualizar",
-  "settings.apps.state.updating": "Descargando actualizaciones…",
+  "settings.apps.updatesNote": "Buscar construye el sistema actualizado aparte, sin cambiar ~/dotfiles; Actualizar ahora lo toma y te pide la contraseña.",
+  "settings.apps.updateAll": "Actualizaciones de software",
   "settings.apps.state.building": "Instalando…",
   "settings.apps.state.done": "Todo al día",
   "settings.apps.state.failed": "La actualización falló",
@@ -191,5 +189,14 @@
   "settings.apps.kind.managed": "Administrada aquí",
   "settings.apps.kind.profile": "Perfil de Nix",
   "settings.apps.kind.local": "Local",
-  "settings.apps.kind.system": "Sistema (packages.nix)"
+  "settings.apps.kind.system": "Sistema (packages.nix)",
+  "settings.apps.state.checking": "Buscando actualizaciones…",
+  "settings.apps.state.preparing": "Preparando las actualizaciones…",
+  "settings.apps.state.available": "{n} actualizaciones disponibles",
+  "settings.apps.state.uptodate": "Todo está al día",
+  "settings.apps.check": "Buscar actualizaciones",
+  "settings.apps.install": "Actualizar ahora",
+  "settings.apps.changes": "Qué cambia ({n})",
+  "settings.apps.more": "Y {n} más",
+  "settings.apps.uninstallSystem": "Desinstalar (en packages.nix)"
 }

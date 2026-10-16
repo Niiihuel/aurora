@@ -37,10 +37,18 @@ Singleton {
     property var applied: []
     readonly property bool pending: JSON.stringify(managed.slice().sort()) !== JSON.stringify(applied.slice().sort())
 
-    /** "" idle, "updating" (flake inputs), "building" (switch), "done", "failed". */
+    /**
+     * "" idle; checking for updates: "checking" (newest flake inputs) →
+     * "preparing" (building the updated system aside) → "available" or
+     * "uptodate"; applying: "building" (switch) → "done"; or "failed".
+     */
     property string state: ""
     property string line: ""
-    readonly property bool busy: state === "updating" || state === "building"
+    readonly property bool busy: state === "checking" || state === "preparing" || state === "building"
+    /** What an update would change: [{ name, from, to, size }], from `nix store diff-closures`. */
+    property var updates: []
+    readonly property string updateDir: (Quickshell.env("XDG_STATE_HOME") || home + "/.local/state") + "/aurora/update"
+    property bool diffing: false
 
     function scan() {
         if (!scanner.running)
@@ -74,19 +82,39 @@ Singleton {
         run("building", "systemctl start ricelin-rebuild.service");
     }
 
-    /** Pull the newest nixpkgs and everything else the flake follows, then rebuild. */
-    function updateAll() {
+    /**
+     * Look for updates without touching ~/dotfiles: lock the newest inputs
+     * into a copy, build that system aside, and list what changes against
+     * the running one.
+     */
+    function checkUpdates() {
         if (busy)
             return;
-        run("updating", "nix flake update --flake \"$HOME/dotfiles\" 2>&1 | tail -n 20 && echo '@@building' && systemctl start ricelin-rebuild.service");
+        updates = [];
+        diffing = false;
+        run("checking",
+            "s=\"$1\"; mkdir -p \"$s\" && " +
+            "nix flake update --flake \"$HOME/dotfiles\" --output-lock-file \"$s/flake.lock\" 2>&1 && " +
+            "echo '@@preparing' && " +
+            "nix build \"$HOME/dotfiles#nixosConfigurations.nixos.config.system.build.toplevel\" " +
+            "--reference-lock-file \"$s/flake.lock\" --no-write-lock-file --out-link \"$s/system\" 2>&1 && " +
+            "echo '@@diff' && nix store diff-closures /run/current-system \"$s/system\"",
+            [updateDir]);
     }
 
-    function run(first, script) {
+    /** Install what checkUpdates found: take its lock into ~/dotfiles and switch (already built). */
+    function applyUpdates() {
+        if (busy)
+            return;
+        run("building", "cp -- \"$1/flake.lock\" \"$HOME/dotfiles/flake.lock\" && systemctl start ricelin-rebuild.service", [updateDir]);
+    }
+
+    function run(first, script, args) {
         state = first;
         line = "";
-        job.command = ["sh", "-c", script];
+        job.command = ["sh", "-c", script, "_"].concat(args ?? []);
         job.running = true;
-        journal.running = true;
+        journal.running = first === "building";
     }
 
     Timer {
@@ -99,20 +127,36 @@ Singleton {
         id: job
         stdout: SplitParser {
             onRead: data => {
-                if (data === "@@building")
-                    root.state = "building";
-                else if (data.trim().length)
+                if (data === "@@preparing") {
+                    root.state = "preparing";
+                } else if (data === "@@diff") {
+                    root.diffing = true;
+                } else if (root.diffing) {
+                    // "firefox: 147.0 → 148.0, +1.2 MiB" (∅ = added or removed)
+                    const m = data.match(/^(\S+): (.+?) → (.+?)(?:, ([+-][\d.]+ \w+))?$/);
+                    if (m)
+                        root.updates = root.updates.concat([{ name: m[1], from: m[2], to: m[3], size: m[4] ?? "" }]);
+                } else if (data.trim().length) {
                     root.line = data.trim();
+                }
             }
         }
         onExited: code => {
             journal.running = false;
-            root.state = code === 0 ? "done" : "failed";
-            if (code === 0) {
-                root.applied = root.managed.slice();
-                appliedFile.setText(JSON.stringify(root.applied) + "\n");
-                root.scan();
+            const applying = root.state === "building";
+            if (code !== 0) {
+                root.state = "failed";
+                return;
             }
+            if (!applying) {
+                root.state = root.updates.length ? "available" : "uptodate";
+                return;
+            }
+            root.state = "done";
+            root.updates = [];
+            root.applied = root.managed.slice();
+            appliedFile.setText(JSON.stringify(root.applied) + "\n");
+            root.scan();
         }
     }
 

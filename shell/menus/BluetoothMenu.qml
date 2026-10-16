@@ -36,6 +36,7 @@ MenuPanel {
                 readonly property real battery: BluetoothStatus.batteryOf(modelData)
                 badge: Glyphs.forDevice(modelData.icon)
                 active: modelData.connected
+                busy: BluetoothStatus.busy(modelData)
                 name: BluetoothStatus.nameOf(modelData)
                 status: {
                     const d = modelData;

@@ -44,6 +44,7 @@ Column {
                 required property var modelData
                 title: modelData.name
                 subtitle: modelData.stateChanging ? I18n.tr("network.connecting") : ""
+                busy: modelData.stateChanging
                 glyph: Glyphs.wifi(NetworkStatus.barsOf(modelData))
                 glyphTint: Tokens.toggleOff
                 interactive: true
@@ -62,6 +63,7 @@ Column {
         SettingsRow {
             visible: NetworkStatus.otherNetworks.length === 0
             title: I18n.tr("network.searching")
+            busy: true
         }
     }
 }

@@ -173,10 +173,8 @@
   "settings.wallpaper.yours": "Your wallpapers",
   "settings.wallpaper.note": "From ~/wallpapers. Super+C opens the quick picker.",
   "settings.apps.updates": "Updates",
-  "settings.apps.updatesNote": "Updating pulls the newest packages into ~/dotfiles (flake.lock) and rebuilds the system; it asks for your password.",
-  "settings.apps.updateAll": "Update apps and system",
-  "settings.apps.update": "Update",
-  "settings.apps.state.updating": "Downloading updates…",
+  "settings.apps.updatesNote": "Checking builds the updated system aside, without changing ~/dotfiles; Update Now takes it and asks for your password.",
+  "settings.apps.updateAll": "Software updates",
   "settings.apps.state.building": "Installing…",
   "settings.apps.state.done": "Up to date",
   "settings.apps.state.failed": "The update failed",
@@ -191,5 +189,14 @@
   "settings.apps.kind.managed": "Managed here",
   "settings.apps.kind.profile": "Nix profile",
   "settings.apps.kind.local": "Local",
-  "settings.apps.kind.system": "System (packages.nix)"
+  "settings.apps.kind.system": "System (packages.nix)",
+  "settings.apps.state.checking": "Checking for updates…",
+  "settings.apps.state.preparing": "Preparing the updates…",
+  "settings.apps.state.available": "{n} updates available",
+  "settings.apps.state.uptodate": "Everything is up to date",
+  "settings.apps.check": "Check for Updates",
+  "settings.apps.install": "Update Now",
+  "settings.apps.changes": "What changes ({n})",
+  "settings.apps.more": "And {n} more",
+  "settings.apps.uninstallSystem": "Uninstall (in packages.nix)"
 }

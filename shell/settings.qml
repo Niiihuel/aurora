@@ -19,14 +19,9 @@ ShellRoot {
         minimumSize: Qt.size(760, 520)
         // SettingsApp paints the background, leaving the sidebar's glass see-through.
         color: "transparent"
-        // Closed: end the app. Not at once — a hot reload hides the old
-        // window too, and this timer dies with it before it fires.
-        onVisibleChanged: if (!visible) quitSoon.start()
-        Timer {
-            id: quitSoon
-            interval: 500
-            onTriggered: if (!win.visible) Qt.quit()
-        }
+        // Closed by the user or the compositor: end the app. (Not on
+        // visibility: a hot reload hides the old window too.)
+        onClosed: Qt.quit()
 
         // Cmd+W on a Mac; the window has no traffic lights (no window in this
         // desktop does: Hyprland draws no title bars).

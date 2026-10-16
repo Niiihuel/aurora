@@ -87,6 +87,7 @@ MenuPanel {
             active: true
             name: network ? network.name : ""
             status: network && network.stateChanging ? I18n.tr("network.connecting") : ""
+            busy: !!network && network.stateChanging
             trailingGlyph: NetworkStatus.secured(network) ? Glyphs.lock : null
             closeOnTrigger: false
             onTriggered: root.openDetail(network)
@@ -107,6 +108,7 @@ MenuPanel {
                 badge: Glyphs.wifi(NetworkStatus.barsOf(modelData))
                 name: modelData.name
                 status: modelData.stateChanging ? I18n.tr("network.connecting") : ""
+                busy: modelData.stateChanging
                 trailingGlyph: NetworkStatus.secured(modelData) ? Glyphs.lock : null
                 closeOnTrigger: !(NetworkStatus.secured(modelData) && !modelData.known)
                 onTriggered: {
@@ -119,6 +121,7 @@ MenuPanel {
         MenuItem {
             visible: NetworkStatus.otherNetworks.length === 0
             text: I18n.tr("network.searching")
+            busy: true
             enabled: false
         }
     }

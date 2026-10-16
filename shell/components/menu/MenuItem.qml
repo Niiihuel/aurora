@@ -24,6 +24,8 @@ Item {
     property bool reserveMark: false
     property bool hasSubmenu: false
     property bool closeOnTrigger: true
+    /** Something is in progress (Searching…): macOS's spinner where the glyph goes. */
+    property bool busy: false
     /** A command that destroys something (Forget…): red text until highlighted. */
     property bool destructive: false
 
@@ -93,8 +95,15 @@ Item {
             }
         }
 
+        ActivityIndicator {
+            visible: root.busy
+            anchors.verticalCenter: parent.verticalCenter
+            size: 13
+            color: root.ink
+        }
+
         Icon {
-            visible: !!root.glyph
+            visible: !!root.glyph && !root.busy
             anchors.verticalCenter: parent.verticalCenter
             glyph: root.glyph ?? []
             size: 15

@@ -18,6 +18,8 @@ MenuItem {
     property bool active: false
     property string status: ""
     property var trailingGlyph: null
+    /** Connecting or disconnecting: macOS's spinner on the trailing side. */
+    property bool busy: false
 
     height: status.length ? 40 : 32
     implicitWidth: 28 + Tokens.space.m + Math.max(title.implicitWidth, statusText.implicitWidth) + (trailingGlyph ? 24 : 0) + 2 * Tokens.menu.itemInset + Tokens.space.xl
@@ -47,7 +49,7 @@ MenuItem {
     Column {
         anchors.left: circle.right
         anchors.leftMargin: Tokens.space.m
-        anchors.right: lockIcon.visible ? lockIcon.left : parent.right
+        anchors.right: lockIcon.visible || spinner.visible ? lockIcon.left : parent.right
         anchors.rightMargin: Tokens.menu.itemInset
         anchors.verticalCenter: parent.verticalCenter
         spacing: 1
@@ -77,12 +79,22 @@ MenuItem {
 
     Icon {
         id: lockIcon
-        visible: !!root.trailingGlyph
+        visible: !!root.trailingGlyph && !root.busy
         anchors.right: parent.right
         anchors.rightMargin: Tokens.menu.itemInset
         anchors.verticalCenter: parent.verticalCenter
         size: 12
         glyph: root.trailingGlyph ?? []
+        color: root.highlighted && !root.blink ? "white" : Tokens.secondaryLabel
+    }
+
+    ActivityIndicator {
+        id: spinner
+        visible: root.busy
+        anchors.right: parent.right
+        anchors.rightMargin: Tokens.menu.itemInset
+        anchors.verticalCenter: parent.verticalCenter
+        size: 13
         color: root.highlighted && !root.blink ? "white" : Tokens.secondaryLabel
     }
 }

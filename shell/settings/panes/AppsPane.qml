@@ -6,10 +6,11 @@ import "../../core/search.mjs" as Search
 import ".."
 
 /**
- * Apps: update everything (the flake's inputs, then a rebuild, with its live
- * progress), apply pending changes, and every installed app — searchable,
- * with where it comes from, Open, and Uninstall when its source allows it
- * (see services/Packages for what uninstall means on NixOS).
+ * Apps: check for updates (what would change, package by package, built
+ * aside without touching ~/dotfiles) and install them; apply pending
+ * changes; and every installed app — searchable, with where it comes from
+ * and a split button: Open, and in its menu Uninstall when the source allows
+ * it (see services/Packages for what that means on NixOS).
  */
 Column {
     id: root
@@ -26,21 +27,22 @@ Column {
 
     Component.onCompleted: Packages.scan()
 
-    // i18n-keys: settings.apps.state.updating settings.apps.state.building settings.apps.state.done settings.apps.state.failed
+    // i18n-keys: settings.apps.state.checking settings.apps.state.preparing settings.apps.state.available settings.apps.state.uptodate settings.apps.state.building settings.apps.state.done settings.apps.state.failed
     SettingsGroup {
         title: I18n.tr("settings.apps.updates")
         footer: I18n.tr("settings.apps.updatesNote")
         SettingsRow {
-            title: I18n.tr("settings.apps.updateAll")
-            subtitle: Packages.state.length
-                ? I18n.tr("settings.apps.state." + Packages.state) + (Packages.line.length ? " · " + Packages.line : "")
-                : "nix flake update · nixos-rebuild switch"
-            glyph: Glyphs.apps
+            title: Packages.state === "available"
+                ? I18n.tr("settings.apps.state.available", { n: Packages.updates.length })
+                : Packages.state.length ? I18n.tr("settings.apps.state." + Packages.state) : I18n.tr("settings.apps.updateAll")
+            subtitle: Packages.busy ? Packages.line : ""
+            glyph: Packages.busy ? null : Glyphs.apps
+            busy: Packages.busy
             Button {
-                text: I18n.tr("settings.apps.update")
-                isDefault: true
-                enabled: !Packages.busy
-                onClicked: Packages.updateAll()
+                visible: !Packages.busy
+                text: Packages.state === "available" ? I18n.tr("settings.apps.install") : I18n.tr("settings.apps.check")
+                isDefault: Packages.state === "available"
+                onClicked: Packages.state === "available" ? Packages.applyUpdates() : Packages.checkUpdates()
             }
         }
         SettingsRow {
@@ -52,6 +54,30 @@ Column {
                 enabled: !Packages.busy
                 onClicked: Packages.apply()
             }
+        }
+    }
+
+    // What the update would change, package by package.
+    SettingsGroup {
+        visible: Packages.updates.length > 0
+        title: I18n.tr("settings.apps.changes", { n: Packages.updates.length })
+        Repeater {
+            model: Packages.updates.slice(0, 60)
+            delegate: SettingsRow {
+                required property var modelData
+                title: modelData.name
+                subtitle: `${modelData.from} → ${modelData.to}`
+                Text {
+                    text: modelData.size
+                    color: Tokens.secondaryLabel
+                    font.family: Tokens.family
+                    font.pixelSize: Tokens.type.subheadline.size
+                }
+            }
+        }
+        SettingsRow {
+            visible: Packages.updates.length > 60
+            title: I18n.tr("settings.apps.more", { n: Packages.updates.length - 60 })
         }
     }
 
@@ -75,20 +101,25 @@ Column {
                 title: modelData.name
                 subtitle: [modelData.genericName || modelData.comment || "", I18n.tr("settings.apps.kind." + source.kind)].filter(s => s.length).join(" · ")
                 image: Apps.iconFor(modelData)
-                Button {
+                SplitButton {
                     text: I18n.tr("settings.apps.open")
+                    backdrop: root.backdrop
                     onClicked: Apps.launch(row.modelData)
-                }
-                Button {
-                    visible: row.source.kind !== "system"
-                    text: I18n.tr("settings.apps.uninstall")
-                    onClicked: Dialogs.confirm({
-                        title: I18n.tr("settings.apps.uninstallTitle", { name: row.modelData.name }),
-                        message: I18n.tr("settings.apps.uninstallMessage." + row.source.kind),
-                        action: I18n.tr("settings.apps.uninstall"),
-                        destructive: true,
-                        run: () => Packages.uninstall(row.modelData)
-                    })
+                    menu: [
+                        { label: I18n.tr("settings.apps.open"), act: () => Apps.launch(row.modelData) },
+                        {
+                            label: row.source.kind === "system" ? I18n.tr("settings.apps.uninstallSystem") : I18n.tr("settings.apps.uninstall") + "…",
+                            destructive: true,
+                            enabled: row.source.kind !== "system",
+                            act: () => Dialogs.confirm({
+                                title: I18n.tr("settings.apps.uninstallTitle", { name: row.modelData.name }),
+                                message: I18n.tr("settings.apps.uninstallMessage." + row.source.kind),
+                                action: I18n.tr("settings.apps.uninstall"),
+                                destructive: true,
+                                run: () => Packages.uninstall(row.modelData)
+                            })
+                        }
+                    ]
                 }
             }
         }

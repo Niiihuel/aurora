@@ -19,6 +19,8 @@ Item {
     property string image: ""
     property color glyphTint: Tokens.accent
     property bool interactive: false
+    /** In progress: macOS's spinner, where the icon goes (or at the end if the row has one). */
+    property bool busy: false
     default property alias trailing: control.data
     signal clicked()
 
@@ -81,7 +83,7 @@ Item {
 
     Column {
         id: labels
-        x: root.glyph || root.image.length ? Tokens.space.l + 24 + Tokens.space.m : Tokens.space.l
+        x: root.glyph || root.image.length || root.busy ? Tokens.space.l + 24 + Tokens.space.m : Tokens.space.l
         anchors.verticalCenter: parent.verticalCenter
         width: control.x - x - Tokens.space.m
         Text {
@@ -109,6 +111,13 @@ Item {
         enabled: root.interactive
         hoverEnabled: root.interactive
         onClicked: root.clicked()
+    }
+
+    ActivityIndicator {
+        visible: root.busy
+        x: root.glyph || root.image.length ? control.x - width - Tokens.space.m : Tokens.space.l + 5
+        anchors.verticalCenter: parent.verticalCenter
+        size: 14
     }
 
     Row {

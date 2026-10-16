@@ -31,6 +31,7 @@ Column {
                 required property var modelData
                 title: BluetoothStatus.nameOf(modelData)
                 subtitle: modelData.connected ? I18n.tr("bluetooth.connected") : ""
+                busy: BluetoothStatus.busy(modelData)
                 glyph: Glyphs.forDevice(modelData.icon)
                 glyphTint: modelData.connected ? Tokens.accent : Tokens.toggleOff
                 interactive: true
