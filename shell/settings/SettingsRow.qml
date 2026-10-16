@@ -27,12 +27,15 @@ Item {
     width: parent ? parent.width : 0
     height: subtitle.length ? 52 : 40
 
-    /** First visible row of its group: no hairline above it. */
+    /**
+     * First visible row of its group: no hairline above it. Items with no
+     * height (a Repeater before its rows) don't count as rows.
+     */
     readonly property bool first: {
         if (!parent)
             return true;
         for (const child of parent.children)
-            if (child.visible)
+            if (child.visible && child.height > 0)
                 return child === root;
         return true;
     }

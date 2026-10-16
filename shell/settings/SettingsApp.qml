@@ -84,6 +84,7 @@ Item {
         screen: Quickshell.screens.find(s => s.name === root.monitor?.name) ?? Quickshell.screens[0]
         origin: root.origin
         excludePid: Quickshell.processId
+        blur: Tokens.glass.sidebar.blur
         region: Qt.rect(root.origin.x + sidebar.x, root.origin.y + sidebar.y, sidebar.width, sidebar.height)
     }
 
@@ -126,7 +127,7 @@ Item {
         Glass {
             anchors.fill: parent
             backdrop: settingsBackdrop
-            material: Tokens.glass.regular
+            material: Tokens.glass.sidebar
             radius: 18
             shadow: false
             track: [root.origin.x, root.origin.y]

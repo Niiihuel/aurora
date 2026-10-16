@@ -123,6 +123,17 @@ Singleton {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.48) : Qt.rgba(0.961, 0.961, 0.969, 0.45),
             blur: 8, refraction: 32, dispersion: 0.5, saturation: 2.2, dim: 0
         },
+        /**
+         * A window's sidebar (Settings): still live glass, but a dense veil
+         * with muted color and a heavy blur, so what's behind reads as soft
+         * blotches and never competes with the list — as in Apple's
+         * Liquid Glass adoption guide (the sidebar over a photo measures a
+         * ~60% grey veil, color nearly gone).
+         */
+        sidebar: {
+            tint: dark ? Qt.rgba(0.17, 0.17, 0.18, 0.74) : Qt.rgba(0.93, 0.93, 0.94, 0.72),
+            blur: 20, refraction: 24, dispersion: 0.3, saturation: 1.1, dim: 0
+        },
         regularSmall: {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.48) : Qt.rgba(0.961, 0.961, 0.969, 0.45),
             blur: 8, refraction: 14, dispersion: 0.5, saturation: 2.2, dim: 0
