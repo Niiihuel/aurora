@@ -27,7 +27,11 @@ Item {
     readonly property real gap: Tokens.space.m
     readonly property real maxListHeight: (Quickshell.screens[0]?.height ?? 900) - Tokens.bar.height - calendar.height - 4 * gap - 60
 
-    /** [{ app, items }] newest group first, keeping each app's notifications newest first. */
+    /**
+     * [{ app, items, start }] newest group first, keeping each app's
+     * notifications newest first; `start` is the group's first card's place
+     * in the whole list (for the Clear All cascade).
+     */
     readonly property var groups: {
         const byApp = [];
         for (const n of Notifications.all) {
@@ -39,7 +43,36 @@ Item {
             }
             group.items.push(n);
         }
+        let start = 0;
+        for (const g of byApp) {
+            g.start = start;
+            start += g.items.length;
+        }
         return byApp;
+    }
+
+    /**
+     * Clear All, like macOS: the cards slide off to the right one after the
+     * other, fading, and only then are they dismissed.
+     */
+    property bool clearing: false
+    readonly property int cascadeStep: 35
+    readonly property int slideOut: 260
+    function clearAll() {
+        if (Motion.reduced) {
+            Notifications.clearAll();
+            return;
+        }
+        clearing = true;
+        clearDone.interval = Notifications.all.length * cascadeStep + slideOut + 40;
+        clearDone.restart();
+    }
+    Timer {
+        id: clearDone
+        onTriggered: {
+            Notifications.clearAll();
+            root.clearing = false;
+        }
     }
 
     property real now: Date.now()
@@ -64,6 +97,8 @@ Item {
     Item {
         id: header
         visible: Notifications.all.length > 0
+        opacity: root.clearing ? 0 : 1
+        Behavior on opacity { NumberAnimation { duration: root.slideOut } }
         width: parent.width
         height: 28
 
@@ -93,7 +128,7 @@ Item {
             MouseArea {
                 id: clearTouch
                 anchors.fill: parent
-                onClicked: Notifications.clearAll()
+                onClicked: root.clearAll()
             }
         }
     }
@@ -145,7 +180,7 @@ Item {
                     width: parent.width
                     spacing: root.gap
 
-                    // The app's name, and a button clearing its notifications.
+                    // The app's name over its notifications.
                     Item {
                         width: parent.width
                         height: 18
@@ -154,39 +189,35 @@ Item {
                         Text {
                             x: Tokens.space.xs
                             anchors.verticalCenter: parent.verticalCenter
+                            opacity: root.clearing ? 0 : 1
+                            Behavior on opacity { NumberAnimation { duration: root.slideOut } }
                             text: group.modelData.app
                             color: Tokens.label
                             font.family: Tokens.family
                             font.pixelSize: Tokens.type.subheadline.size
                             font.weight: Font.DemiBold
                         }
-                        Icon {
-                            anchors.right: parent.right
-                            anchors.rightMargin: Tokens.space.xs
-                            anchors.verticalCenter: parent.verticalCenter
-                            glyph: Glyphs.xmark
-                            size: 12
-                            stroke: 2
-                            color: Tokens.secondaryLabel
-                            MouseArea {
-                                anchors.fill: parent
-                                anchors.margins: -6
-                                onClicked: {
-                                    for (const n of group.modelData.items.slice())
-                                        Notifications.dismiss(n);
-                                }
-                            }
-                        }
                     }
 
                     Repeater {
                         model: group.modelData.items
                         delegate: NotificationCard {
+                            id: card
                             required property var modelData
+                            required property int index
                             notification: modelData
                             backdrop: root.backdrop
                             now: root.now
-                            track: [root.track, group.y, y, list.contentY]
+                            track: [root.track, group.y, x, y, list.contentY]
+
+                            SequentialAnimation {
+                                running: root.clearing
+                                PauseAnimation { duration: (group.modelData.start + card.index) * root.cascadeStep }
+                                ParallelAnimation {
+                                    NumberAnimation { target: card; property: "x"; to: card.width + 24; duration: root.slideOut; easing.type: Easing.InCubic }
+                                    NumberAnimation { target: card; property: "opacity"; to: 0; duration: root.slideOut; easing.type: Easing.InQuad }
+                                }
+                            }
                         }
                     }
                 }

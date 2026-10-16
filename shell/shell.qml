@@ -6,6 +6,7 @@ import "core"
 import "dialogs"
 import "launcher"
 import "notifications"
+import "osd"
 import "services"
 
 /**
@@ -32,6 +33,7 @@ ShellRoot {
 
     Banners {}
     Launcher { id: launcher }
+    Osd {}
 
     WifiPasswordDialog {}
     ConfirmDialog {}
