@@ -299,11 +299,11 @@ PanelWindow {
         readonly property bool current: Capture.mode === value
         width: 40
         height: 32
+        // Hover only fades; the current mode is the toolbar's sliding drop.
         Rectangle {
             anchors.fill: parent
-            radius: 8
-            color: mode.current ? (Tokens.dark ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(0, 0, 0, 0.10))
-                : modeHover.containsMouse ? (Tokens.dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.05)) : "transparent"
+            radius: height / 2
+            color: !mode.current && modeHover.containsMouse ? (Tokens.dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.05)) : "transparent"
         }
         Icon {
             anchors.centerIn: parent
@@ -353,6 +353,38 @@ PanelWindow {
             track: [toolbar.scale]
         }
 
+        // The current mode: a drop that slides to the chosen one on a spring,
+        // stretching with its speed (Liquid Glass's selection).
+        readonly property real modeX: {
+            void row.implicitWidth;
+            void Capture.mode;
+            for (const c of row.children)
+                if (c.value === Capture.mode)
+                    return c.mapToItem(toolbar, 0, 0).x;
+            return 0;
+        }
+        SpringValue {
+            id: modeDrop
+            to: toolbar.modeX
+            preset: ({ duration: 0.34, bounce: 0.22 })
+        }
+        Connections {
+            target: root
+            function onChoosingChanged() {
+                if (root.choosing)
+                    Qt.callLater(() => modeDrop.snap(toolbar.modeX));
+            }
+        }
+        Rectangle {
+            readonly property real stretch: Math.min(16, Math.abs(modeDrop.velocity) * 0.006)
+            x: modeDrop.value - stretch / 2
+            width: 40 + stretch
+            height: 32 - stretch * 0.25
+            y: (toolbar.height - height) / 2
+            radius: height / 2
+            color: Tokens.dark ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(0, 0, 0, 0.10)
+        }
+
         Row {
             id: row
             anchors.centerIn: parent
@@ -390,7 +422,7 @@ PanelWindow {
                 height: 32
                 Rectangle {
                     anchors.fill: parent
-                    radius: 8
+                    radius: height / 2
                     color: optionsHover.containsMouse || options.open ? (Tokens.dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.05)) : "transparent"
                 }
                 Row {

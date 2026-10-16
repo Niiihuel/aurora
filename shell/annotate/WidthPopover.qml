@@ -41,7 +41,7 @@ Item {
                 height: 32
                 Rectangle {
                     anchors.fill: parent
-                    radius: 8
+                    radius: height / 2
                     color: parent.current ? Tokens.accent : presetHover.containsMouse ? (Tokens.dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.05)) : "transparent"
                 }
                 Rectangle {

@@ -13,6 +13,11 @@ import "../services"
  * redo · copy, save, upload · settings. Hovering a button shows its name and
  * key under the toolbar; the color, width and settings popovers open from
  * their buttons (services/Annotate keeps which one is open).
+ *
+ * Highlights are round, concentric with the capsule. The active tool is a
+ * drop that slides to the new one on a spring, stretching with its speed
+ * and settling back (Liquid Glass's selection); hovering only fades, since
+ * the pointer crosses buttons all the time.
  */
 Item {
     id: root
@@ -35,7 +40,10 @@ Item {
     opacity: 0
     property real rise: 6
     transform: Translate { y: root.rise }
-    onVisibleChanged: if (visible) appear.restart()
+    onVisibleChanged: if (visible) {
+        appear.restart();
+        Qt.callLater(() => dropX.snap(root.toolX));
+    }
     ParallelAnimation {
         id: appear
         NumberAnimation { target: root; property: "opacity"; from: 0; to: 1; duration: 140; easing.type: Easing.OutCubic }
@@ -67,6 +75,8 @@ Item {
         id: button
         property var glyph: []
         property bool current: false
+        /** The active tool's drop draws its highlight (see `drop`). */
+        property bool sliding: false
         property bool available: true
         property string label: ""
         property string shortcut: ""
@@ -79,8 +89,8 @@ Item {
         Behavior on scale { NumberAnimation { duration: 80 } }
         Rectangle {
             anchors.fill: parent
-            radius: 8
-            color: button.current ? (Tokens.dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(0, 0, 0, 0.10))
+            radius: height / 2
+            color: button.current && !button.sliding ? root.currentFill
                 : hover.containsMouse && button.available ? (Tokens.dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.05)) : "transparent"
         }
         Icon {
@@ -120,6 +130,30 @@ Item {
         return out;
     }
 
+    readonly property color currentFill: Tokens.dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(0, 0, 0, 0.10)
+
+    // The active tool's drop: slides between tools, stretching with speed.
+    readonly property real toolX: {
+        void row.implicitWidth;
+        const b = toolButtons.itemAt(Annotate.tools.indexOf(Annotate.tool));
+        return b ? b.mapToItem(root, 0, 0).x : 0;
+    }
+    SpringValue {
+        id: dropX
+        to: root.toolX
+        preset: ({ duration: 0.34, bounce: 0.22 })
+    }
+    Rectangle {
+        id: drop
+        readonly property real stretch: Math.min(14, Math.abs(dropX.velocity) * 0.006)
+        x: dropX.value - stretch / 2
+        width: 32 + stretch
+        height: 32 - stretch * 0.25
+        y: (root.height - height) / 2
+        radius: height / 2
+        color: root.currentFill
+    }
+
     Row {
         id: row
         anchors.centerIn: parent
@@ -156,9 +190,11 @@ Item {
         Separator {}
 
         Repeater {
+            id: toolButtons
             model: Annotate.tools
             delegate: ToolButton {
                 required property string modelData
+                sliding: true
                 glyph: root.toolGlyphs[modelData]
                 current: Annotate.tool === modelData
                 label: I18n.tr("annotate.tool." + modelData)
