@@ -12,7 +12,9 @@ import "../services"
  * Grip · the twelve tools · color, width, fill (rect and ellipse) · undo,
  * redo · copy, save, upload · settings. Hovering a button shows its name and
  * key under the toolbar; the color, width and settings popovers open from
- * their buttons (services/Annotate keeps which one is open).
+ * their buttons with aurora's menu motion (GlassMorph: a drop out of the
+ * button that swells into the panel; services/Annotate keeps which one is
+ * open).
  *
  * Highlights are round, concentric with the capsule. The active tool is a
  * drop that slides to the new one on a spring, stretching with its speed
@@ -331,33 +333,71 @@ Item {
 
     // --- Popovers --------------------------------------------------------------------------
 
-    /** Where a popover goes: centered on its button, on the roomier side of the toolbar. */
-    function placeX(button, w) {
-        const c = button.mapToItem(root, button.width / 2, 0).x;
-        const gx = root.x + c - w / 2;
-        return Math.max(8, Math.min(root.parent.width - w - 8, gx)) - root.x;
-    }
-    readonly property bool roomBelow: root.y + root.height + 330 < root.parent.height
+    /**
+     * A popover with aurora's menu motion (GlassMorph): a drop out of its
+     * button that swells into the panel and melts back into it. It works in
+     * the window's coordinates and lenses the frosted screen.
+     */
+    component Pop: GlassMorph {
+        id: pop
+        property string name: ""
+        property Item button: null
+        property real panelWidth: 0
+        property real panelHeight: 0
+        /** Above the toolbar when there's no room below (or when `preferAbove`). */
+        property bool preferAbove: false
+        readonly property bool above: preferAbove ? root.y > panelHeight + 16 : !(root.y + root.height + 8 + panelHeight < root.parent.height - 8)
 
-    ColorPopover {
-        visible: Annotate.popover === "color"
-        frosted: root.frosted
-        x: root.placeX(colorButton, width)
-        y: root.roomBelow ? root.height + 8 : -height - 8
-        track: [root.x, root.y]
+        x: -root.x
+        y: -root.y
+        width: root.parent ? root.parent.width : 0
+        height: root.parent ? root.parent.height : 0
+        open: Annotate.popover === name
+        refracts: root.frosted
+        track: [root.x, root.y, root.rise]
+        fromRect: {
+            void Annotate.popover;
+            void root.x;
+            void root.y;
+            if (!button)
+                return Qt.rect(0, 0, 0, 0);
+            const p = button.mapToItem(root, 0, 0);
+            return Qt.rect(root.x + p.x, root.y + p.y, button.width, button.height);
+        }
+        toRect: {
+            void Annotate.popover;
+            if (!button)
+                return Qt.rect(0, 0, 0, 0);
+            const c = root.x + button.mapToItem(root, button.width / 2, 0).x;
+            const x = Math.max(8, Math.min(width - panelWidth - 8, c - panelWidth / 2));
+            const y = above ? root.y - panelHeight - 8 : root.y + root.height + 8;
+            return Qt.rect(x, y, panelWidth, panelHeight);
+        }
     }
-    WidthPopover {
-        visible: Annotate.popover === "width"
-        frosted: root.frosted
-        x: root.placeX(widthButton, width)
-        y: root.roomBelow ? root.height + 8 : -height - 8
-        track: [root.x, root.y]
+
+    Pop {
+        name: "color"
+        button: colorButton
+        panelWidth: colorPopover.width
+        panelHeight: colorPopover.height
+        panelRadius: 16
+        ColorPopover { id: colorPopover }
     }
-    AnnotateSettings {
-        visible: Annotate.popover === "settings"
-        frosted: root.frosted
-        x: root.placeX(gearButton, width)
-        y: root.y > height + 16 ? -height - 8 : root.height + 8
-        track: [root.x, root.y]
+    Pop {
+        name: "width"
+        button: widthButton
+        panelWidth: widthPopover.width
+        panelHeight: widthPopover.height
+        panelRadius: widthPopover.height / 2
+        WidthPopover { id: widthPopover }
+    }
+    Pop {
+        name: "settings"
+        button: gearButton
+        preferAbove: true
+        panelWidth: settingsPopover.width
+        panelHeight: settingsPopover.height
+        panelRadius: 18
+        AnnotateSettings { id: settingsPopover }
     }
 }

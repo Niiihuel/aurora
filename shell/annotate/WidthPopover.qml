@@ -4,29 +4,16 @@ import "../components"
 import "../services"
 
 /**
- * The editor's width presets on glass: thin, medium, thick (2, 4, 7). The
- * wheel over the screen goes anywhere from 1 to 20.
+ * The editor's width presets (on the toolbar's GlassMorph): thin, medium,
+ * thick (2, 4, 7). The wheel over the screen goes anywhere from 1 to 20.
  */
 Item {
     id: root
 
-    property Item frosted: null
-    property var track: []
 
     width: row.implicitWidth + 2 * Tokens.space.s
     height: 44
 
-    MouseArea {
-        anchors.fill: parent
-    }
-
-    Glass {
-        anchors.fill: parent
-        refracts: root.frosted
-        material: Tokens.glass.regular
-        radius: height / 2
-        track: [root.track, root.x, root.y]
-    }
 
     Row {
         id: row

@@ -5,16 +5,14 @@ import "../services"
 import "geometry.mjs" as G
 
 /**
- * The editor's color picker, on glass: a saturation/brightness square, a hue
- * strip, seven swatches and a hex field (#rgb or #rrggbb; anything else goes
- * back to the current color). Every pick applies at once and it stays open;
- * Esc or a click outside closes it.
+ * The editor's color picker (its glass is the toolbar's GlassMorph): a
+ * saturation/brightness square, a hue strip, seven swatches and a hex field
+ * (#rgb or #rrggbb; anything else goes back to the current color). Every
+ * pick applies at once and it stays open; Esc or a click outside closes it.
  */
 Item {
     id: root
 
-    property Item frosted: null
-    property var track: []
 
     property real hue: 0
     property real sat: 1
@@ -39,7 +37,13 @@ Item {
         Annotate.setColor(c);
     }
 
-    onVisibleChanged: if (visible) load()
+    Connections {
+        target: Annotate
+        function onPopoverChanged() {
+            if (Annotate.popover === "color")
+                root.load();
+        }
+    }
 
     Keys.onPressed: event => {
         if (event.key === Qt.Key_Escape) {
@@ -48,17 +52,6 @@ Item {
         }
     }
 
-    MouseArea {
-        anchors.fill: parent
-    }
-
-    Glass {
-        anchors.fill: parent
-        refracts: root.frosted
-        material: Tokens.glass.regular
-        radius: 16
-        track: [root.track, root.x, root.y]
-    }
 
     Column {
         id: column

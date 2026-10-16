@@ -5,17 +5,15 @@ import "../components/menu"
 import "../services"
 
 /**
- * The editor's settings, on glass (gear or ","): the effects' strength —
- * pixelate cell, blur radius, zoom factor — live on the marks already made;
- * saving — keep a copy on disk when copying, ask where to save, copy to the
- * clipboard when saving, and the folder; and a way to the shortcuts
- * (Settings › Keyboard). Everything persists in Settings.
+ * The editor's settings (gear or ","; on the toolbar's GlassMorph): the
+ * effects' strength — pixelate cell, blur radius, zoom factor — live on the
+ * marks already made; saving — keep a copy on disk when copying, ask where
+ * to save, copy to the clipboard when saving, and the folder; and a way to
+ * the shortcuts (Settings › Keyboard). Everything persists in Settings.
  */
 Item {
     id: root
 
-    property Item frosted: null
-    property var track: []
 
     width: 300
     height: column.implicitHeight + 2 * Tokens.space.l
@@ -27,17 +25,6 @@ Item {
         }
     }
 
-    MouseArea {
-        anchors.fill: parent
-    }
-
-    Glass {
-        anchors.fill: parent
-        refracts: root.frosted
-        material: Tokens.glass.regular
-        radius: 18
-        track: [root.track, root.x, root.y]
-    }
 
     component Caption: Text {
         x: Tokens.space.s
