@@ -48,6 +48,8 @@ ShellRoot {
     // Joining a secured network from the Wi-Fi page asks here.
     WifiPasswordDialog {}
     ConfirmDialog {}
+    // Keyboard's "Add Shortcut…".
+    ShortcutDialog {}
 
     IpcHandler {
         target: "settings"

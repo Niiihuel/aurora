@@ -46,6 +46,11 @@
           ${pkgs.nodejs}/bin/node ${./shell/core}/search.test.mjs
           touch $out
         '';
+        # Keyboard shortcuts: key presses to Hyprland keys and back (shell/core/keys.mjs).
+        keys = pkgs.runCommand "aurora-keys-check" { } ''
+          ${pkgs.nodejs}/bin/node ${./shell/core}/keys.test.mjs
+          touch $out
+        '';
       };
 
       devShells.${system}.default = pkgs.mkShell {

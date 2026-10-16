@@ -6,7 +6,8 @@ import Quickshell.Networking
 
 /**
  * System dialogs the shell can raise (one at a time, like macOS alerts).
- * Today: the Wi-Fi password prompt. A dialog shows on the focused screen.
+ * The Wi-Fi password prompt, confirmations and the New Shortcut modal. A
+ * dialog shows on the focused screen.
  */
 Singleton {
     id: root
@@ -50,6 +51,13 @@ Singleton {
             if (root.joining && root.joining.connected)
                 root.joining = null;
         }
+    }
+
+    /** The "New Shortcut" modal (Settings' Keyboard page) is open. */
+    property bool shortcutForm: false
+
+    function addShortcut() {
+        shortcutForm = true;
     }
 
     /**
