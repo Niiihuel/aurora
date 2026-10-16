@@ -184,6 +184,67 @@ Singleton {
         { d: "M8 1.75 A6.25 6.25 0 1 1 8 14.25 A6.25 6.25 0 1 1 8 1.75 Z" },
         { d: "M5.75 5.75 L10.25 10.25 M10.25 5.75 L5.75 10.25" }
     ]
+    // --- The screenshot editor's tools and actions (annotate/) -------------------
+
+    readonly property var toolSelect: [
+        { d: "M4 2.25 V12.25 L6.6 9.85 L8.5 13.75 L10.25 12.95 L8.35 9.1 L11.75 8.85 Z" }
+    ]
+    readonly property var toolRect: [
+        { d: "M2.5 3.5 H13.5 V12.5 H2.5 Z" }
+    ]
+    readonly property var toolEllipse: [
+        { d: "M8 3.25 A5.75 4.75 0 1 1 8 12.75 A5.75 4.75 0 1 1 8 3.25 Z" }
+    ]
+    readonly property var toolLine: [
+        { d: "M3 13 L13 3" }
+    ]
+    readonly property var toolArrow: [
+        { d: "M3 13 L12.5 3.5 M7 3.5 H12.5 V9" }
+    ]
+    readonly property var toolPen: [
+        { d: "M3 13 L3.5 10.5 L10.75 3.25 A1.4 1.4 0 0 1 12.75 5.25 L5.5 12.5 Z M9.5 4.5 L11.5 6.5" }
+    ]
+    readonly property var toolMarker: [
+        { d: "M2.5 13.75 H7.5" },
+        { d: "M4.25 11.25 L10.75 4.75 L12.75 6.75 L6.25 13.25 H4.25 Z" }
+    ]
+    readonly property var toolStep: [
+        { d: "M8 1.75 A6.25 6.25 0 1 1 8 14.25 A6.25 6.25 0 1 1 8 1.75 Z" },
+        { d: "M6.75 6 L8.5 4.9 V11.1" }
+    ]
+    readonly property var toolText: [
+        { d: "M3.5 4.25 V2.75 H12.5 V4.25 M8 2.75 V13.25 M6 13.25 H10" }
+    ]
+    readonly property var toolBlur: [
+        { d: "M8 2.25 C8 2.25 3.75 7 3.75 9.75 A4.25 4.25 0 0 0 12.25 9.75 C12.25 7 8 2.25 8 2.25 Z" }
+    ]
+    readonly property var toolPixelate: [
+        { d: "M2.5 2.5 H13.5 V13.5 H2.5 Z" },
+        { d: "M2.5 2.5 H6.2 V6.2 H2.5 Z M9.8 2.5 H13.5 V6.2 H9.8 Z M6.2 6.2 H9.8 V9.8 H6.2 Z M2.5 9.8 H6.2 V13.5 H2.5 Z M9.8 9.8 H13.5 V13.5 H9.8 Z", fill: true }
+    ]
+    readonly property var toolZoom: [
+        { d: "M7 2.5 A4.5 4.5 0 1 1 7 11.5 A4.5 4.5 0 1 1 7 2.5 Z M10.25 10.25 L13.75 13.75 M5 7 H9 M7 5 V9" }
+    ]
+    readonly property var undo: [
+        { d: "M5.5 3.75 L2.75 6.5 L5.5 9.25 M2.75 6.5 H10 A3.25 3.25 0 0 1 10 13 H7" }
+    ]
+    readonly property var redo: [
+        { d: "M10.5 3.75 L13.25 6.5 L10.5 9.25 M13.25 6.5 H6 A3.25 3.25 0 0 0 6 13 H9" }
+    ]
+    readonly property var copy: [
+        { d: "M6 5.5 H12.5 A1 1 0 0 1 13.5 6.5 V13 A1 1 0 0 1 12.5 14 H6 A1 1 0 0 1 5 13 V6.5 A1 1 0 0 1 6 5.5 Z M3 10.5 V3 A1 1 0 0 1 4 2 H10.5" }
+    ]
+    readonly property var download: [
+        { d: "M8 2.5 V10 M5 7 L8 10 L11 7 M2.75 10.5 V13.25 H13.25 V10.5" }
+    ]
+    readonly property var upload: [
+        { d: "M8 10.25 V2.75 M5 5.75 L8 2.75 L11 5.75 M2.75 10.5 V13.25 H13.25 V10.5" }
+    ]
+    /** A drag grip: six dots. */
+    readonly property var grip: [
+        { d: "M6 3.25 A1 1 0 1 1 6 5.25 A1 1 0 1 1 6 3.25 Z M10 3.25 A1 1 0 1 1 10 5.25 A1 1 0 1 1 10 3.25 Z M6 7 A1 1 0 1 1 6 9 A1 1 0 1 1 6 7 Z M10 7 A1 1 0 1 1 10 9 A1 1 0 1 1 10 7 Z M6 10.75 A1 1 0 1 1 6 12.75 A1 1 0 1 1 6 10.75 Z M10 10.75 A1 1 0 1 1 10 12.75 A1 1 0 1 1 10 10.75 Z", fill: true }
+    ]
+
     /** Color picker: an eyedropper. */
     readonly property var eyedropper: [
         { d: "M9.25 4.25 L11.75 6.75 M10.5 2.9 L13.1 5.5 A1.4 1.4 0 0 0 13.1 3.5 L12.5 2.9 A1.4 1.4 0 0 0 10.5 2.9 Z" },

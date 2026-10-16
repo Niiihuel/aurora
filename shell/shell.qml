@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "annotate"
 import "bar"
 import "capture"
 import "core"
@@ -41,6 +42,11 @@ ShellRoot {
     WallpaperPicker {}
     // Screenshots and screen recording (Super+D), and the thumbnail after.
     CaptureLayer {}
+    // Screenshot and mark up (Print): one frozen layer per screen.
+    Variants {
+        model: Quickshell.screens
+        delegate: AnnotateLayer {}
+    }
     CaptureThumbnail {}
 
     WifiPasswordDialog {}
@@ -60,5 +66,7 @@ ShellRoot {
         function accent(): string { return Tokens.accent.toString(); }
         // `capture`: the capture toolbar (or stop a recording), like Super+D.
         function capture(): void { Capture.toggle(); }
+        // `screenshot region` / `screenshot monitor`: freeze, select, mark up (like Print).
+        function screenshot(mode: string): void { Annotate.start(mode); }
     }
 }

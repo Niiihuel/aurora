@@ -12,3 +12,4 @@ singleton Idle 1.0 Idle.qml
 singleton Packages 1.0 Packages.qml
 singleton Keybinds 1.0 Keybinds.qml
 singleton Capture 1.0 Capture.qml
+singleton Annotate 1.0 Annotate.qml

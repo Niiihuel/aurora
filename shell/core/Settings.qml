@@ -60,6 +60,22 @@ Singleton {
     property alias capturePointer: adapter.capturePointer
     property alias captureRemember: adapter.captureRemember
     property alias captureSelection: adapter.captureSelection
+    /**
+     * The screenshot editor (Print): the last tool, each tool's style as JSON
+     * ({ tool: { color, width, filled } }), the effects' strength (pixelate
+     * cell, blur radius, zoom factor), and saving: keep a copy on disk when
+     * copying, ask where to save, the folder ("" = Pictures/Screenshots),
+     * and copy to the clipboard when saving.
+     */
+    property alias annotateTool: adapter.annotateTool
+    property alias annotateStyles: adapter.annotateStyles
+    property alias annotateMosaic: adapter.annotateMosaic
+    property alias annotateBlur: adapter.annotateBlur
+    property alias annotateZoom: adapter.annotateZoom
+    property alias annotateKeepCopy: adapter.annotateKeepCopy
+    property alias annotateAskWhere: adapter.annotateAskWhere
+    property alias annotateFolder: adapter.annotateFolder
+    property alias annotateCopyOnSave: adapter.annotateCopyOnSave
 
     readonly property bool dark: appearance !== "light"
 
@@ -100,6 +116,15 @@ Singleton {
             property bool capturePointer: true
             property bool captureRemember: true
             property string captureSelection: ""
+            property string annotateTool: "rect"
+            property string annotateStyles: "{}"
+            property int annotateMosaic: 14
+            property int annotateBlur: 64
+            property real annotateZoom: 2.0
+            property bool annotateKeepCopy: false
+            property bool annotateAskWhere: false
+            property string annotateFolder: ""
+            property bool annotateCopyOnSave: false
         }
     }
 }
