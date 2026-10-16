@@ -10,7 +10,7 @@ import "../services"
  * The macOS-style menu bar for one screen: 24 pt, full width, on subtle glass.
  *
  * Leading: the system menu (aurora's mark) and the frontmost app's name in
- * bold. Trailing: sound, Bluetooth, network and battery extras, Control
+ * bold. Trailing: a stop button while recording the screen, sound, Bluetooth, network and battery extras, Control
  * Center, and the clock. Each slot is a BarItem; its menu arrives in section 3
  * through `clicked`.
  *
@@ -120,6 +120,21 @@ PanelWindow {
             anchors.right: parent.right
             anchors.rightMargin: Tokens.space.m
             height: parent.height
+
+            // Recording the screen: stop, and how long it's been (as macOS does).
+            BarItem {
+                visible: Capture.state === "recording"
+                onClicked: Capture.stop()
+                Icon { glyph: Glyphs.stop; color: Tokens.label; anchors.verticalCenter: parent.verticalCenter }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: `${Math.floor(Capture.elapsed / 60)}:${String(Capture.elapsed % 60).padStart(2, "0")}`
+                    color: Tokens.label
+                    font.family: Tokens.family
+                    font.pixelSize: Tokens.type.body.size
+                    font.features: ({ "tnum": 1 })
+                }
+            }
 
             BarItem {
                 visible: AudioStatus.ready

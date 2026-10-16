@@ -8,8 +8,9 @@ import "../core"
  *
  * `items`: [{ label, checked?, destructive?, enabled?, act }] — a check column
  * appears when any item can be checked. `show(control)` opens it under the
- * control; picking an item closes it and runs `act`; a click elsewhere or
- * scrolling closes it.
+ * control (above it with `upward`, for controls near the bottom edge);
+ * picking an item closes it and runs `act`; a click elsewhere or scrolling
+ * closes it.
  */
 Item {
     id: root
@@ -17,6 +18,7 @@ Item {
     property var items: []
     property Item backdrop: null
     property bool open: false
+    property bool upward: false
     property rect from: Qt.rect(0, 0, 0, 0)
     property Item surface: null
     readonly property bool checks: items.some(i => i.checked !== undefined)
@@ -55,7 +57,7 @@ Item {
             const w = Math.max(root.from.width, column.implicitWidth + 12, 180);
             const h = column.implicitHeight + 12;
             const x = Math.min(root.from.x + root.from.width - w, root.width - w - 8);
-            return Qt.rect(Math.max(8, x), root.from.y + root.from.height + 4, w, h);
+            return Qt.rect(Math.max(8, x), root.upward ? root.from.y - h - 4 : root.from.y + root.from.height + 4, w, h);
         }
         panelRadius: 10
         backdrop: root.backdrop

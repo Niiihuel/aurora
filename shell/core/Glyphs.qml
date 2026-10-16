@@ -157,6 +157,33 @@ Singleton {
         { d: "M1.75 5.25 V3.25 A1.5 1.5 0 0 1 3.25 1.75 H5.25 M10.75 1.75 H12.75 A1.5 1.5 0 0 1 14.25 3.25 V5.25 M14.25 10.75 V12.75 A1.5 1.5 0 0 1 12.75 14.25 H10.75 M5.25 14.25 H3.25 A1.5 1.5 0 0 1 1.75 12.75 V10.75" },
         { d: "M8 5.6 A2.4 2.4 0 1 1 8 10.4 A2.4 2.4 0 1 1 8 5.6 Z" }
     ]
+    /** Capture the entire screen: a display. */
+    readonly property var captureScreen: [
+        { d: "M3.25 2.75 H12.75 A1.5 1.5 0 0 1 14.25 4.25 V11.75 A1.5 1.5 0 0 1 12.75 13.25 H3.25 A1.5 1.5 0 0 1 1.75 11.75 V4.25 A1.5 1.5 0 0 1 3.25 2.75 Z" }
+    ]
+    /** Capture a selection: a dashed frame. */
+    readonly property var captureSelection: [
+        { d: "M1.75 5 V3.75 A1 1 0 0 1 2.75 2.75 H4.25 M7 2.75 H9 M11.75 2.75 H13.25 A1 1 0 0 1 14.25 3.75 V5 M14.25 7.25 V8.75 M14.25 11 V12.25 A1 1 0 0 1 13.25 13.25 H11.75 M9 13.25 H7 M4.25 13.25 H2.75 A1 1 0 0 1 1.75 12.25 V11 M1.75 8.75 V7.25" }
+    ]
+    /** Record the entire screen: a display with the record dot. */
+    readonly property var recordScreen: [
+        { d: "M3.25 2.75 H12.75 A1.5 1.5 0 0 1 14.25 4.25 V11.75 A1.5 1.5 0 0 1 12.75 13.25 H3.25 A1.5 1.5 0 0 1 1.75 11.75 V4.25 A1.5 1.5 0 0 1 3.25 2.75 Z" },
+        { d: "M8 5.75 A2.25 2.25 0 1 1 8 10.25 A2.25 2.25 0 1 1 8 5.75 Z", fill: true }
+    ]
+    /** Record a selection: a dashed frame with the record dot. */
+    readonly property var recordSelection: [
+        { d: "M1.75 5 V3.75 A1 1 0 0 1 2.75 2.75 H4.25 M7 2.75 H9 M11.75 2.75 H13.25 A1 1 0 0 1 14.25 3.75 V5 M14.25 7.25 V8.75 M14.25 11 V12.25 A1 1 0 0 1 13.25 13.25 H11.75 M9 13.25 H7 M4.25 13.25 H2.75 A1 1 0 0 1 1.75 12.25 V11 M1.75 8.75 V7.25" },
+        { d: "M8 5.75 A2.25 2.25 0 1 1 8 10.25 A2.25 2.25 0 1 1 8 5.75 Z", fill: true }
+    ]
+    /** Stop recording (the menu bar while recording). */
+    readonly property var stop: [
+        { d: "M5 3.5 H11 A1.5 1.5 0 0 1 12.5 5 V11 A1.5 1.5 0 0 1 11 12.5 H5 A1.5 1.5 0 0 1 3.5 11 V5 A1.5 1.5 0 0 1 5 3.5 Z", fill: true }
+    ]
+    /** Close (a circled cross, the capture toolbar's dismiss). */
+    readonly property var closeCircle: [
+        { d: "M8 1.75 A6.25 6.25 0 1 1 8 14.25 A6.25 6.25 0 1 1 8 1.75 Z" },
+        { d: "M5.75 5.75 L10.25 10.25 M10.25 5.75 L5.75 10.25" }
+    ]
     /** Color picker: an eyedropper. */
     readonly property var eyedropper: [
         { d: "M9.25 4.25 L11.75 6.75 M10.5 2.9 L13.1 5.5 A1.4 1.4 0 0 0 13.1 3.5 L12.5 2.9 A1.4 1.4 0 0 0 10.5 2.9 Z" },

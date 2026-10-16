@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import "bar"
+import "capture"
 import "core"
 import "dialogs"
 import "launcher"
@@ -38,6 +39,9 @@ ShellRoot {
     Osd {}
     Switcher {}
     WallpaperPicker {}
+    // Screenshots and screen recording (Super+D), and the thumbnail after.
+    CaptureLayer {}
+    CaptureThumbnail {}
 
     WifiPasswordDialog {}
     ConfirmDialog {}
@@ -54,5 +58,7 @@ ShellRoot {
         function controlCenter(page: string): void { Menus.page = page; Menus.request("controlCenter"); }
         function activeMenu(): string { return Menus.active; }
         function accent(): string { return Tokens.accent.toString(); }
+        // `capture`: the capture toolbar (or stop a recording), like Super+D.
+        function capture(): void { Capture.toggle(); }
     }
 }

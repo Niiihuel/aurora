@@ -45,6 +45,21 @@ Singleton {
     property alias idleScreenOff: adapter.idleScreenOff
     property alias idleLock: adapter.idleLock
     property alias idleSuspend: adapter.idleSuspend
+    /**
+     * Screenshots and recordings (Super+D): the last mode
+     * ("shotScreen" | "shotSelection" | "recordScreen" | "recordSelection"),
+     * where they go ("default" = Pictures/Videos, "desktop", "documents",
+     * "clipboard" for screenshots), the timer in seconds, sound, the pointer,
+     * and the last selection ("screen x y w h", kept when `captureRemember`).
+     */
+    property alias captureMode: adapter.captureMode
+    property alias captureSaveTo: adapter.captureSaveTo
+    property alias captureTimer: adapter.captureTimer
+    property alias captureMic: adapter.captureMic
+    property alias captureSystemAudio: adapter.captureSystemAudio
+    property alias capturePointer: adapter.capturePointer
+    property alias captureRemember: adapter.captureRemember
+    property alias captureSelection: adapter.captureSelection
 
     readonly property bool dark: appearance !== "light"
 
@@ -77,6 +92,14 @@ Singleton {
             property int idleScreenOff: 10
             property int idleLock: 0
             property int idleSuspend: 0
+            property string captureMode: "recordSelection"
+            property string captureSaveTo: "default"
+            property int captureTimer: 0
+            property bool captureMic: false
+            property bool captureSystemAudio: true
+            property bool capturePointer: true
+            property bool captureRemember: true
+            property string captureSelection: ""
         }
     }
 }

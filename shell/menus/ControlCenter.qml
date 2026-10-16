@@ -405,7 +405,10 @@ Item {
                 x: root.at(1); y: root.at(5); width: root.unit; height: root.unit
                 backdrop: root.backdrop
                 glyph: Glyphs.screenshot
-                onClicked: root.launch(["rishot", "region"])
+                onClicked: {
+                    Menus.close();
+                    Capture.open();
+                }
             }
 
             CCButton {
