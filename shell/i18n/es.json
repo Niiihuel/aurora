@@ -81,5 +81,7 @@
   "launcher.clipboard": "Portapapeles",
   "launcher.calculator": "Calculadora",
   "launcher.noResults": "Sin resultados",
-  "launcher.image": "Imagen {size}"
+  "launcher.image": "Imagen {size}",
+  "lock.password": "Introduce la contraseña",
+  "lock.wrong": "Contraseña incorrecta"
 }

@@ -218,6 +218,10 @@ Singleton {
         { d: "M5.5 2.75 H3.75 A1 1 0 0 0 2.75 3.75 V13.75 A1 1 0 0 0 3.75 14.75 H12.25 A1 1 0 0 0 13.25 13.75 V3.75 A1 1 0 0 0 12.25 2.75 H10.5" },
         { d: "M5.5 1.5 H10.5 V4 H5.5 Z M5.25 8 H10.75 M5.25 11 H9" }
     ]
+    /** Submit (the lock screen's password field). */
+    readonly property var arrowRight: [
+        { d: "M3 8 H13 M8.75 3.75 L13 8 L8.75 12.25" }
+    ]
     /** Calculator result. */
     readonly property var equals: [
         { d: "M3.5 6 H12.5 M3.5 10 H12.5" }

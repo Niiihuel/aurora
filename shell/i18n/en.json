@@ -81,5 +81,7 @@
   "launcher.clipboard": "Clipboard",
   "launcher.calculator": "Calculator",
   "launcher.noResults": "No Results",
-  "launcher.image": "Image {size}"
+  "launcher.image": "Image {size}",
+  "lock.password": "Enter Password",
+  "lock.wrong": "Incorrect password"
 }

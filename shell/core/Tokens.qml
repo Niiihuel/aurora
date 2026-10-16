@@ -134,6 +134,15 @@ Singleton {
             tint: Qt.rgba(1, 1, 1, 0.86),
             blur: 8, refraction: 14, dispersion: 0.5, saturation: 1.4, dim: 0
         },
+        /**
+         * The lock screen's big clock: frosted glass numerals over the
+         * wallpaper (a light veil on the blurred wallpaper, no rim — the
+         * outline is the glyphs').
+         */
+        clock: {
+            tint: Qt.rgba(1, 1, 1, 0.62),
+            blur: 10, refraction: 0, dispersion: 0, saturation: 1.4, dim: 0
+        },
         clear: {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.20) : Qt.rgba(0.961, 0.961, 0.969, 0.18),
             blur: 4, refraction: 32, dispersion: 0.6, saturation: 1.6, dim: 0
