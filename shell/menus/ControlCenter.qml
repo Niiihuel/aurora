@@ -37,6 +37,8 @@ Item {
     readonly property bool bare: !page.length
     readonly property real panelRadius: page.length ? Tokens.radius.menu : cc.radius
     property Item highlighted: null
+    /** Window-space geometry the modules' glass depends on (set by the menu layer). */
+    property var track: []
 
     /** "" for the grid, else "network", "bluetooth", "sound", "energy" or "media". */
     property string page: ""

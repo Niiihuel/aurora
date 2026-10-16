@@ -3,8 +3,9 @@ import "../../core"
 import ".."
 
 /**
- * A 1×1 Control Center control: a glass circle with a glyph. On, it turns
- * into a white disc with the glyph in the accent color, as in macOS Tahoe.
+ * A 1×1 Control Center control: a glass circle with a glyph. On, the glass
+ * turns bright white with the glyph in the accent color, as in macOS Tahoe —
+ * it stays glass either way.
  * A click (or Return) emits `clicked`; the owner flips the real state and
  * feeds `on` back. A secondary click asks for its options (`opened`), like
  * Control-click in macOS.
@@ -18,17 +19,11 @@ CCModule {
     signal opened()
 
     round: true
+    material: on ? Tokens.glass.toggleOn : Tokens.glass.module
     menuItem: true
     pressed: touch.pressed
     onActivated: clicked()
 
-    Rectangle {
-        anchors.fill: parent
-        radius: width / 2
-        color: "white"
-        opacity: root.on ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: Motion.hover } }
-    }
 
     Icon {
         anchors.centerIn: parent

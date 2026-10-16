@@ -7,7 +7,7 @@ import ".."
  * button and the control's name and status. The button flips it
  * (`toggled`); the name opens its options (`opened`) when it has any, like
  * macOS ("click an icon to turn it on or off; click the item to show more").
- * On, the button is a white disc with the glyph in the accent color.
+ * On, the button is a disc of bright white glass with the glyph in the accent.
  */
 CCModule {
     id: root
@@ -25,15 +25,29 @@ CCModule {
     pressed: button.pressed || label.pressed
     onActivated: hasDetail ? opened() : toggled()
 
-    Rectangle {
+    Item {
         id: disc
         x: (root.height - width) / 2
         anchors.verticalCenter: parent.verticalCenter
         width: Tokens.controlCenter.toggle
         height: width
-        radius: width / 2
-        color: root.on ? "white" : Tokens.toggleOff
-        Behavior on color { ColorAnimation { duration: Motion.hover } }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: width / 2
+            color: Tokens.toggleOff
+            visible: !root.on
+        }
+        // On: a disc of bright glass inside the capsule's glass, like Tahoe's.
+        Glass {
+            anchors.fill: parent
+            visible: root.on
+            backdrop: root.backdrop
+            material: Tokens.glass.toggleOn
+            radius: width / 2
+            shadow: false
+            track: [root.x, root.y, root.scale, root.panel ? root.panel.track : null]
+        }
 
         Icon {
             anchors.centerIn: parent

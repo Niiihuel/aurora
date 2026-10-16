@@ -125,6 +125,15 @@ Singleton {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.34) : Qt.rgba(0.961, 0.961, 0.969, 0.32),
             blur: 8, refraction: 14, dispersion: 0.5, saturation: 2.2, dim: 0
         },
+        /**
+         * A Control Center control that is on: bright white glass (still
+         * glass — it refracts at its rim and lets a little through), the
+         * glyph drawn in the accent on it.
+         */
+        toggleOn: {
+            tint: Qt.rgba(1, 1, 1, 0.86),
+            blur: 8, refraction: 14, dispersion: 0.5, saturation: 1.4, dim: 0
+        },
         clear: {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.20) : Qt.rgba(0.961, 0.961, 0.969, 0.18),
             blur: 4, refraction: 32, dispersion: 0.6, saturation: 1.6, dim: 0

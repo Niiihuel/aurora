@@ -330,10 +330,12 @@ PanelWindow {
 
                 readonly property real reveal: Math.min(focusIn.value, menuLayer.focused)
                 opacity: reveal
-                // Fixed-size item, so a layer is fine. Kept on while a menu is
-                // shown: switching it on at the start of a close rendered one
-                // frame differently.
-                layer.enabled: menuLayer.shownId.length > 0
+                // The layer only exists for the blur while the content focuses
+                // in or out. At rest it must be off: a layer is a snapshot that
+                // doesn't hear its glass children's backdrop changing, so glass
+                // inside it (Control Center's modules, slider knobs) froze on
+                // whatever was behind when it opened.
+                layer.enabled: menuLayer.shownId.length > 0 && reveal < 0.999
                 layer.effect: MultiEffect {
                     blurEnabled: true
                     blurMax: 32
@@ -343,6 +345,15 @@ PanelWindow {
                 Loader {
                     id: loader
                     sourceComponent: menuLayer.componentFor(menuLayer.shownId)
+                }
+                // Where the panel sits moves after it's created (its width is
+                // only known then): glass inside it re-maps itself onto the
+                // backdrop through `track`, or it samples the old spot.
+                Binding {
+                    target: loader.item
+                    property: "track"
+                    when: !!loader.item
+                    value: [menuLayer.panelRect.x, menuLayer.panelRect.y, menuLayer.panelWidth, menuLayer.panelHeight]
                 }
             }
         }

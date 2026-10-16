@@ -21,6 +21,7 @@ Item {
     property bool round: false
     property bool menuItem: false
     property bool pressed: false
+    property var material: Tokens.glass.module
     signal activated()
 
     readonly property real radius: round ? height / 2 : Tokens.controlCenter.radius
@@ -46,11 +47,11 @@ Item {
     Glass {
         anchors.fill: parent
         backdrop: root.backdrop
-        material: Tokens.glass.module
+        material: root.material
         radius: root.radius
         shadow: false
         held: root.pressed
-        track: [root.x, root.y, lift.value]
+        track: [root.x, root.y, lift.value, root.panel ? root.panel.track : null]
     }
 
     Rectangle {
