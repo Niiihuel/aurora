@@ -63,8 +63,9 @@ PanelWindow {
 
     // --- The frozen screen and the marks -------------------------------------------
 
-    // A frosted copy for the glass (toolbar, popovers): under the stage, which
-    // hides it, but rendered so the glass can lens it.
+    // A frosted copy for the glass (toolbar, popovers). The toolbar's glass
+    // hides it from the scene (it's only rendered into the glass's lens, not
+    // drawn full screen under the stage every frame).
     MultiEffect {
         id: frosted
         anchors.fill: parent
@@ -75,15 +76,16 @@ PanelWindow {
         autoPaddingEnabled: false
     }
 
-    /** The marks as shown: the one being moved follows the pointer. */
-    readonly property var shown: {
-        const list = Annotate.items;
-        if (!touch.movingMark || Annotate.selected < 0)
-            return list;
-        const out = list.slice();
-        out[Annotate.selected] = G.moved(out[Annotate.selected], touch.dx, touch.dy);
-        return out;
+    /** A mark as shown: the one being moved follows the pointer. */
+    function markAt(i) {
+        const a = Annotate.items[i];
+        return touch.movingMark && i === Annotate.selected ? G.moved(a, touch.dx, touch.dy) : a;
     }
+    // Which marks are effects (drawn first) and which vectors. These only
+    // change when marks are added or removed, so the delegates aren't
+    // rebuilt while one is dragged: only the dragged one updates.
+    readonly property var effectMarks: Annotate.items.map((a, i) => i).filter(i => G.EFFECTS.includes(Annotate.items[i].type))
+    readonly property var vectorMarks: Annotate.items.map((a, i) => i).filter(i => !G.EFFECTS.includes(Annotate.items[i].type))
 
     Item {
         id: stage
@@ -104,19 +106,19 @@ PanelWindow {
 
         // Effects first, then the vector marks (in the order they were made).
         Repeater {
-            model: root.mine ? root.shown.map((a, i) => i).filter(i => G.EFFECTS.includes(root.shown[i].type)) : []
+            model: root.mine ? root.effectMarks : []
             delegate: AnnotationView {
                 required property int modelData
-                a: root.shown[modelData]
+                a: touch.movingMark && modelData === Annotate.selected ? root.markAt(modelData) : Annotate.items[modelData]
                 frozen: frozenLoader.item
                 dpr: root.dpr
             }
         }
         Repeater {
-            model: root.mine ? root.shown.map((a, i) => i).filter(i => !G.EFFECTS.includes(root.shown[i].type)) : []
+            model: root.mine ? root.vectorMarks : []
             delegate: AnnotationView {
                 required property int modelData
-                a: root.shown[modelData]
+                a: touch.movingMark && modelData === Annotate.selected ? root.markAt(modelData) : Annotate.items[modelData]
                 frozen: frozenLoader.item
                 dpr: root.dpr
             }
@@ -217,7 +219,7 @@ PanelWindow {
 
         // The picked mark (select tool).
         Item {
-            readonly property var a: Annotate.selected >= 0 ? root.shown[Annotate.selected] : null
+            readonly property var a: Annotate.selected >= 0 && Annotate.selected < Annotate.items.length ? root.markAt(Annotate.selected) : null
             readonly property var bb: a ? G.bounds(a) : null
             readonly property real pad: a ? (a.type === "text" || a.type === "step" ? 4 : Math.max(a.width, 6)) : 0
             visible: root.editing && root.mine && !!a
@@ -264,6 +266,8 @@ PanelWindow {
     // --- Windows (click one to take it) ---------------------------------------------------
 
     readonly property var windows: {
+        if (!root.visible)
+            return [];
         void Hyprland.toplevels.values;
         const mon = Hyprland.monitorFor(root.modelData);
         const ws = mon && mon.activeWorkspace ? mon.activeWorkspace.id : -1;

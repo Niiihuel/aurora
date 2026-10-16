@@ -77,6 +77,8 @@ PanelWindow {
     // --- Windows under the pointer (click one to select it) ---------------------
 
     readonly property var windows: {
+        if (!root.visible)
+            return [];
         void Hyprland.toplevels.values;
         const mon = Hyprland.monitorFor(root.screen);
         const ws = mon && mon.activeWorkspace ? mon.activeWorkspace.id : -1;

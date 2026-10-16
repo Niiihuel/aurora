@@ -24,6 +24,11 @@ import "../services"
  * around the glass once kept a window streaming behind a resting bar and the
  * whole overlay redrawing at 120 fps.
  *
+ * Nothing is captured, listed or listened to while the window is hidden
+ * (most glass windows are, most of the time: the launcher, the switcher, the
+ * capture bar, dialogs…): each focus change used to rebuild the captures of
+ * every hidden backdrop. Showing the window reads the windows afresh.
+ *
  * They are refreshed at `captureFps`, not `live`: a live capture is answered
  * on Hyprland's next repaint, which our own redraw triggers, so live views
  * looped at the display's full rate (120 fps, ~15% CPU) behind a menu at
@@ -54,6 +59,9 @@ Item {
     readonly property bool ready: wallpaper.status === Image.Ready
     readonly property real dpr: monitor ? monitor.scale : 1
     readonly property int captures: windows.length
+    /** The window is on screen (a hidden one needs no captures). */
+    readonly property bool shown: root.Window.visibility !== Window.Hidden
+    onShownChanged: if (shown) Hyprland.refreshToplevels()
 
     x: -origin.x
     y: -origin.y
@@ -79,7 +87,7 @@ Item {
     readonly property var windows: {
         const mon = monitor;
         const r = region;
-        if (!captureWindows || !mon || r.width <= 0 || r.height <= 0)
+        if (!shown || !captureWindows || !mon || r.width <= 0 || r.height <= 0)
             return [];
         const workspace = mon.activeWorkspace ? mon.activeWorkspace.id : -1;
         const list = [];
@@ -104,6 +112,7 @@ Item {
 
     Connections {
         target: Hyprland
+        enabled: root.shown
         function onRawEvent(event) {
             switch (event.name) {
             case "openwindow": case "closewindow": case "movewindow": case "movewindowv2":
@@ -158,7 +167,7 @@ Item {
     Timer {
         interval: 1000 / root.captureFps
         repeat: true
-        running: captureViews.count > 0 && root.Window.visibility !== Window.Hidden
+        running: captureViews.count > 0 && root.shown
         onTriggered: {
             for (let i = 0; i < captureViews.count; i++)
                 captureViews.itemAt(i).captureFrame();

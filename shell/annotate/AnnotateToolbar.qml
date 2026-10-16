@@ -61,6 +61,8 @@ Item {
     Glass {
         anchors.fill: parent
         refracts: root.frosted
+        // The frosted screen exists only for the glass: keep it out of the scene.
+        hideRefracted: true
         material: Tokens.glass.regular
         radius: height / 2
         track: [root.x, root.y, root.rise]
