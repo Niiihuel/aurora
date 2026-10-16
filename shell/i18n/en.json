@@ -198,5 +198,6 @@
   "settings.apps.install": "Update Now",
   "settings.apps.changes": "What changes ({n})",
   "settings.apps.more": "And {n} more",
-  "settings.apps.uninstallSystem": "Uninstall (in packages.nix)"
+  "settings.apps.uninstallSystem": "Uninstall (in packages.nix)",
+  "calendar.today": "Today"
 }

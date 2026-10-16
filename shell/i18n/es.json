@@ -198,5 +198,6 @@
   "settings.apps.install": "Actualizar ahora",
   "settings.apps.changes": "Qué cambia ({n})",
   "settings.apps.more": "Y {n} más",
-  "settings.apps.uninstallSystem": "Desinstalar (en packages.nix)"
+  "settings.apps.uninstallSystem": "Desinstalar (en packages.nix)",
+  "calendar.today": "Hoy"
 }

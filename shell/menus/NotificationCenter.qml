@@ -7,8 +7,9 @@ import "../services"
 /**
  * Notification Center, after macOS Tahoe: opened from the clock, a column of
  * separate liquid glass pieces with no panel behind them — the notifications
- * grouped by app (newest group first) with "Clear All", and a calendar of the
- * month below. The list scrolls when it outgrows the screen.
+ * grouped by app (newest group first) with "Clear All", and a month
+ * calendar below (MonthCalendar) that pages between months. The list
+ * scrolls when it outgrows the screen.
  *
  * It's a bare panel for the menu layer (its glass carries the pop out of the
  * clock and hands over to the cards), like Control Center.
@@ -227,97 +228,13 @@ Item {
 
     // --- Calendar ------------------------------------------------------------------
 
-    Item {
+    MonthCalendar {
         id: calendar
         y: list.y + list.height + root.gap
         width: parent.width
-        // Header, weekday row, the month's weeks (4–6), and the bottom inset.
-        height: grid.y + 20 + calendar.weeks * 24 + Tokens.space.l
-        readonly property int weeks: Math.ceil((lead + days) / 7)
-
-        readonly property date today: new Date(root.now)
-        readonly property int year: today.getFullYear()
-        readonly property int month: today.getMonth()
-        /** Monday-first (or the locale's first day) offset of the 1st. */
-        readonly property int firstDay: I18n.locale.firstDayOfWeek % 7
-        readonly property int lead: (new Date(year, month, 1).getDay() - firstDay + 7) % 7
-        readonly property int days: new Date(year, month + 1, 0).getDate()
-
-        Glass {
-            anchors.fill: parent
-            backdrop: root.backdrop
-            material: Tokens.glass.regular
-            radius: Tokens.radius.banner
-            shadow: false
-            track: [root.track, calendar.y]
-        }
-
-        Text {
-            x: Tokens.space.l + 2
-            y: Tokens.space.l
-            text: {
-                const s = I18n.locale.toString(calendar.today, "MMMM yyyy");
-                return s.charAt(0).toUpperCase() + s.slice(1);
-            }
-            color: Tokens.accent
-            font.family: Tokens.family
-            font.pixelSize: Tokens.type.callout.size
-            font.weight: Font.Bold
-        }
-
-        Grid {
-            id: grid
-            x: Tokens.space.l
-            y: 38
-            columns: 7
-            readonly property real cell: (calendar.width - 2 * Tokens.space.l) / 7
-
-            // Weekday initials, starting on the locale's first day.
-            Repeater {
-                model: 7
-                delegate: Text {
-                    required property int index
-                    width: grid.cell
-                    height: 20
-                    horizontalAlignment: Text.AlignHCenter
-                    text: I18n.locale.dayName((calendar.firstDay + index) % 7, Locale.NarrowFormat).toUpperCase()
-                    color: Tokens.secondaryLabel
-                    font.family: Tokens.family
-                    font.pixelSize: Tokens.type.caption2.size
-                    font.weight: Font.DemiBold
-                }
-            }
-
-            Repeater {
-                model: 42
-                delegate: Item {
-                    required property int index
-                    readonly property int day: index - calendar.lead + 1
-                    readonly property bool inMonth: day >= 1 && day <= calendar.days
-                    readonly property bool isToday: inMonth && day === calendar.today.getDate()
-                    visible: index < calendar.weeks * 7
-                    width: grid.cell
-                    height: 24
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 22
-                        height: 22
-                        radius: 11
-                        color: Tokens.accent
-                        visible: parent.isToday
-                    }
-                    Text {
-                        anchors.centerIn: parent
-                        text: parent.inMonth ? parent.day : ""
-                        color: parent.isToday ? "white" : Tokens.label
-                        font.family: Tokens.family
-                        font.pixelSize: Tokens.type.footnote.size + 1
-                        font.weight: parent.isToday ? Font.Bold : Font.Normal
-                        font.features: ({ "tnum": 1 })
-                    }
-                }
-            }
-        }
+        height: implicitHeight
+        backdrop: root.backdrop
+        track: root.track
+        now: root.now
     }
 }
