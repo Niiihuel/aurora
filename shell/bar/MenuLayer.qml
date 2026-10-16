@@ -316,7 +316,9 @@ PanelWindow {
             y: glass.y
             width: glass.width
             height: glass.height
-            clip: true
+            // The glass reveals the content while it morphs. At rest nothing
+            // clips: a pressed module grows past the panel's edge (it lifts).
+            clip: !(menuLayer.wanted && menuLayer.settled)
 
             // Clicks inside the menu must not reach the close-on-press area.
             MouseArea { anchors.fill: parent }

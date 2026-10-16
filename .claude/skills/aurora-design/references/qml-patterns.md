@@ -32,6 +32,14 @@ The shell's config directory is symlinked into `~/.config/quickshell/<name>`, an
 - Glass that runs edge to edge (the menu bar) sets `edge: false`: no bent rim, no dispersion, no hairline. macOS draws its bar flat; the lit edge only belongs on floating shapes.
 - Compile shaders with the `qsb` from the same Qt version Quickshell links (`nix-store -qR $(readlink -f $(command -v quickshell)) | grep qtbase` → use that version's `qtshadertools`): `qsb --glsl "100 es,120,150" --hlsl 50 --msl 12 -o x.frag.qsb x.frag`.
 
+### Keeping glass live (learned the hard way, Control Center)
+
+- **The rim must refract the sharp scene.** `GlassBackdrop` gives a blurred texture (`texture`, the frost) and a sharp one (`sharpTexture`); the shader moves from the first to the second toward the rim. Bending only a blur is invisible and the glass reads as a flat frosted panel.
+- **No glass inside a `layer.enabled` item at rest.** A layer is a snapshot that doesn't hear its glass children's backdrop changing: the glass freezes on whatever was behind when it was created. `MenuLayer` enables its content layer only while the content blurs in/out (`reveal < 0.999`).
+- **Glass re-maps itself only when `track` changes** (mapToItem isn't reactive). Anything that moves an ancestor — a panel sliding to its final place after it learns its width — must reach the glass's `track`, or it samples the wrong spot of the screen (looks static and the wrong color). `MenuLayer` binds `panelRect` into the panel's `track`; Control Center modules add `panel.track` to theirs.
+- **Pressed glass grows** (`Motion.pressScale`): never clip it at the panel's edge at rest. `MenuLayer` clips its content only while the glass morphs.
+- Verify over a playing video: two screenshots a second apart must differ under the glass.
+
 ## 3. Morphing surfaces
 
 A surface that grows out of the bar (menu, panel) is laid out at its full size while its container animates.
