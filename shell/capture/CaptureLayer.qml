@@ -177,6 +177,14 @@ PanelWindow {
         }
     }
 
+    /** The toolbar's hint: entering the next button can come before leaving this one. */
+    function setHint(inside, text) {
+        if (inside)
+            toolbar.hint = text;
+        else if (toolbar.hint === text)
+            toolbar.hint = "";
+    }
+
     function handlePoint(h) {
         const r = sel;
         const x = h.includes("w") ? r.x : h.includes("e") ? r.x + r.width : r.x + r.width / 2;
@@ -316,7 +324,7 @@ PanelWindow {
             anchors.fill: parent
             hoverEnabled: true
             onClicked: Capture.setMode(mode.value)
-            onContainsMouseChanged: toolbar.hint = containsMouse ? I18n.tr("capture.mode." + mode.value) : ""
+            onContainsMouseChanged: root.setHint(containsMouse, I18n.tr("capture.mode." + mode.value))
         }
     }
     component Divider: Rectangle {
@@ -354,13 +362,14 @@ PanelWindow {
         }
 
         // The current mode: a drop that slides to the chosen one on a spring,
-        // stretching with its speed (Liquid Glass's selection).
+        // stretching with its speed (Liquid Glass's selection). In the row's
+        // coordinates (row.x + the button's x, both reactive): when the row
+        // re-centers — "Capture" and "Record" differ in width — the drop moves
+        // with it at once, and only the jump between modes is animated.
         readonly property real modeX: {
-            void row.implicitWidth;
-            void Capture.mode;
             for (const c of row.children)
                 if (c.value === Capture.mode)
-                    return c.mapToItem(toolbar, 0, 0).x;
+                    return c.x;
             return 0;
         }
         SpringValue {
@@ -377,7 +386,7 @@ PanelWindow {
         }
         Rectangle {
             readonly property real stretch: Math.min(16, Math.abs(modeDrop.velocity) * 0.006)
-            x: modeDrop.value - stretch / 2
+            x: row.x + modeDrop.value - stretch / 2
             width: 40 + stretch
             height: 32 - stretch * 0.25
             y: (toolbar.height - height) / 2
@@ -404,7 +413,7 @@ PanelWindow {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: Capture.cancel()
-                    onContainsMouseChanged: toolbar.hint = containsMouse ? I18n.tr("capture.close") : ""
+                    onContainsMouseChanged: root.setHint(containsMouse, I18n.tr("capture.close"))
                 }
             }
             Divider {}

@@ -112,9 +112,16 @@ Item {
             hoverEnabled: true
             enabled: button.available
             onClicked: button.clicked()
+            // Entering the next button can come before leaving this one: only
+            // clear the hint if it's still ours.
             onContainsMouseChanged: {
-                root.hint = containsMouse ? button.label : "";
-                root.hintKey = containsMouse ? button.shortcut : "";
+                if (containsMouse) {
+                    root.hint = button.label;
+                    root.hintKey = button.shortcut;
+                } else if (root.hint === button.label) {
+                    root.hint = "";
+                    root.hintKey = "";
+                }
             }
         }
     }
@@ -135,10 +142,13 @@ Item {
     readonly property color currentFill: Tokens.dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(0, 0, 0, 0.10)
 
     // The active tool's drop: slides between tools, stretching with speed.
+    // It lives in the row's coordinates (row.x + the button's x, both
+    // reactive), so when the row re-centers — the Fill button coming and
+    // going changes its width — the drop moves with it at once; only the
+    // jump from tool to tool is animated.
     readonly property real toolX: {
-        void row.implicitWidth;
-        const b = toolButtons.itemAt(Annotate.tools.indexOf(Annotate.tool));
-        return b ? b.mapToItem(root, 0, 0).x : 0;
+        const b = toolButtons.count ? toolButtons.itemAt(Annotate.tools.indexOf(Annotate.tool)) : null;
+        return b ? b.x : 0;
     }
     SpringValue {
         id: dropX
@@ -148,7 +158,7 @@ Item {
     Rectangle {
         id: drop
         readonly property real stretch: Math.min(14, Math.abs(dropX.velocity) * 0.006)
-        x: dropX.value - stretch / 2
+        x: row.x + dropX.value - stretch / 2
         width: 32 + stretch
         height: 32 - stretch * 0.25
         y: (root.height - height) / 2
