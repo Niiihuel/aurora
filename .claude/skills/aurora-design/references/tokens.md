@@ -28,7 +28,7 @@ Dark appearance first; light mirrors it.
 | success | `#30D158` | `#34C759` |
 | warning | `#FFD60A` | `#FFCC00` |
 
-Accent is a user setting. Template icons and labels on glass use label/secondaryLabel, never a raw hex.
+Accent is a user setting: empty (the default) follows the wallpaper — `core/WallpaperAccent.qml` runs Quickshell's `ColorQuantizer` on the main screen's wallpaper and `core/accent.mjs` picks the dominant 30° hue family, makes it vivid (S 0.6–0.9) and darkens it until white labels reach 3.5:1 (Apple's blue is 3.6:1); a grey wallpaper keeps the blue. A "#RRGGBB" in Settings fixes it. Test the picker with `node shell/core/accent.test.mjs` (also a flake check). Template icons and labels on glass use label/secondaryLabel, never a raw hex.
 
 ## Glass presets
 

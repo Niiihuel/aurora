@@ -30,11 +30,18 @@
       # either from the store or, while developing, as a live link to this repo.
       homeManagerModules.default = import ./nix/home.nix { inherit self; quickshell = qs; };
 
-      # `nix flake check`: every visible string is translated in every language.
-      checks.${system}.i18n = pkgs.runCommand "aurora-i18n-check" { } ''
-        ${pkgs.python3}/bin/python3 ${./scripts/check-i18n.py} ${./shell}
-        touch $out
-      '';
+      checks.${system} = {
+        # Every visible string is translated in every language.
+        i18n = pkgs.runCommand "aurora-i18n-check" { } ''
+          ${pkgs.python3}/bin/python3 ${./scripts/check-i18n.py} ${./shell}
+          touch $out
+        '';
+        # The wallpaper accent picker (shell/core/accent.mjs).
+        accent = pkgs.runCommand "aurora-accent-check" { } ''
+          ${pkgs.nodejs}/bin/node ${./shell/core}/accent.test.mjs
+          touch $out
+        '';
+      };
 
       devShells.${system}.default = pkgs.mkShell {
         packages = [

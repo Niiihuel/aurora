@@ -17,7 +17,7 @@ Singleton {
 
     /** "dark" or "light". */
     property alias appearance: adapter.appearance
-    /** Accent color as "#RRGGBB"; empty uses the system blue for the appearance. */
+    /** Accent color as "#RRGGBB"; empty follows the wallpaper (system blue if it's grey). */
     property alias accent: adapter.accent
     /** Replace movement with cross-fades (macOS Reduce Motion). */
     property alias reduceMotion: adapter.reduceMotion

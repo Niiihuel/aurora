@@ -51,7 +51,9 @@ Singleton {
     readonly property color quaternaryLabel: _ink(0.10)
     readonly property color separator: _ink(0.10)
 
-    readonly property color accent: Settings.accent.length ? Settings.accent : (dark ? "#0A84FF" : "#007AFF")
+    /** A fixed choice in Settings, else the wallpaper's hue, else the system blue. */
+    readonly property color accent: Settings.accent.length ? Settings.accent
+        : WallpaperAccent.tone ?? (dark ? "#0A84FF" : "#007AFF")
     readonly property color destructive: dark ? "#FF453A" : "#FF3B30"
     readonly property color success: dark ? "#30D158" : "#34C759"
     readonly property color warning: dark ? "#FFD60A" : "#FFCC00"

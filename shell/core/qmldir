@@ -5,3 +5,4 @@ singleton Glyphs 1.0 Glyphs.qml
 singleton Menus 1.0 Menus.qml
 singleton I18n 1.0 I18n.qml
 singleton Dialogs 1.0 Dialogs.qml
+singleton WallpaperAccent 1.0 WallpaperAccent.qml

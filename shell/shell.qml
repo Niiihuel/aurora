@@ -4,6 +4,7 @@ import Quickshell.Io
 import "bar"
 import "core"
 import "dialogs"
+import "services"
 
 /**
  * aurora's shell entry point. Sections are added here as they are built; see
@@ -20,6 +21,13 @@ ShellRoot {
         delegate: MenuLayer {}
     }
 
+    // The accent follows the main screen's wallpaper (Settings.accent overrides).
+    Binding {
+        target: WallpaperAccent
+        property: "source"
+        value: Quickshell.screens.length ? Wallpaper.pathFor(Quickshell.screens[0].name) : ""
+    }
+
     WifiPasswordDialog {}
     ConfirmDialog {}
 
@@ -30,5 +38,6 @@ ShellRoot {
         function menu(id: string): void { Menus.request(id); }
         function closeMenu(): void { Menus.close(); }
         function activeMenu(): string { return Menus.active; }
+        function accent(): string { return Tokens.accent.toString(); }
     }
 }
