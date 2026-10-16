@@ -180,6 +180,7 @@ Item {
         visible: !root.opaque
 
         property var source: root.refracts ? lensSource : (root.backdrop ? root.backdrop.texture : null)
+        property var sharp: root.refracts ? lensSource : (root.backdrop ? root.backdrop.sharpTexture : null)
         property vector2d itemSize: Qt.vector2d(Math.max(1, width), Math.max(1, height))
         // Where this item sits in the source texture, as uv. Both corners are
         // mapped so a press scale (or any parent transform) stays correct.

@@ -33,6 +33,8 @@ Singleton {
     property alias locale: adapter.locale
     /** Show the battery percentage next to its menu bar icon. */
     property alias batteryPercent: adapter.batteryPercent
+    /** Do Not Disturb: notifications arrive silently, without banners. */
+    property alias doNotDisturb: adapter.doNotDisturb
 
     readonly property bool dark: appearance !== "light"
 
@@ -58,6 +60,7 @@ Singleton {
             property string language: "es"
             property string locale: ""
             property bool batteryPercent: true
+            property bool doNotDisturb: false
         }
     }
 }

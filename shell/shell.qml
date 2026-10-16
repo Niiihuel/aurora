@@ -37,6 +37,8 @@ ShellRoot {
         target: "aurora"
         function menu(id: string): void { Menus.request(id); }
         function closeMenu(): void { Menus.close(); }
+        // `controlCenter network` opens Control Center on that page ("" for the grid).
+        function controlCenter(page: string): void { Menus.page = page; Menus.request("controlCenter"); }
         function activeMenu(): string { return Menus.active; }
         function accent(): string { return Tokens.accent.toString(); }
     }

@@ -24,6 +24,8 @@ Item {
     property bool reserveMark: false
     property bool hasSubmenu: false
     property bool closeOnTrigger: true
+    /** A command that destroys something (Forget…): red text until highlighted. */
+    property bool destructive: false
 
     signal triggered()
 
@@ -62,7 +64,7 @@ Item {
         }
     }
 
-    readonly property color ink: !enabled ? Tokens.tertiaryLabel : (highlighted && !blink ? "white" : Tokens.label)
+    readonly property color ink: !enabled ? Tokens.tertiaryLabel : (highlighted && !blink ? "white" : destructive ? Tokens.destructive : Tokens.label)
 
     Rectangle {
         anchors.fill: parent

@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Networking
+import Quickshell.Io
 
 /**
  * Network state and actions for the menu bar's network extra and its menu.
@@ -62,6 +63,13 @@ Singleton {
         Networking.wifiEnabled = on;
     }
 
+    /** Airplane Mode: every radio off (Wi-Fi and Bluetooth; there's no WWAN here). */
+    readonly property bool airplane: !wifiEnabled && !BluetoothStatus.enabled
+    function setAirplane(on) {
+        setWifiEnabled(!on);
+        BluetoothStatus.setEnabled(!on);
+    }
+
     /** Keep scanning for networks while a menu shows them, like macOS. */
     function setScanning(on) {
         if (wifiDevice)
@@ -90,5 +98,69 @@ Singleton {
     function disconnect(network) {
         if (network)
             network.disconnect();
+    }
+
+    // --- A saved network's details (the Wi-Fi menu's detail view) ------------
+    // NetworkManager's profile for an SSID: Quickshell exposes forget() but not
+    // auto-join or the stored password, so those go through nmcli. The
+    // password is read only when asked for and dropped when the view closes.
+
+    /** { uuid, autoJoin } of the network being inspected, or null. */
+    property var profile: null
+    property string password: ""
+
+    function inspect(network) {
+        profile = null;
+        password = "";
+        if (!network)
+            return;
+        profileQuery.ssid = network.name;
+        profileQuery.running = true;
+    }
+
+    function revealPassword() {
+        if (profile) {
+            passwordQuery.uuid = profile.uuid;
+            passwordQuery.running = true;
+        }
+    }
+
+    function copyPassword() {
+        // Piped straight into the clipboard, so the secret never passes through QML.
+        if (profile)
+            Quickshell.execDetached(["sh", "-c", "nmcli -s -g 802-11-wireless-security.psk connection show \"$1\" | tr -d '\\n' | wl-copy", "_", profile.uuid]);
+    }
+
+    function setAutoJoin(on) {
+        if (!profile)
+            return;
+        Quickshell.execDetached(["nmcli", "connection", "modify", profile.uuid, "connection.autoconnect", on ? "yes" : "no"]);
+        profile = { uuid: profile.uuid, autoJoin: on };
+    }
+
+    function forget(network) {
+        if (network)
+            network.forget();
+    }
+
+    Process {
+        id: profileQuery
+        property string ssid: ""
+        command: ["sh", "-c", "nmcli -t -f UUID,TYPE connection show | while IFS=: read -r u t; do [ \"$t\" = 802-11-wireless ] || continue; if [ \"$(nmcli -g 802-11-wireless.ssid connection show \"$u\")\" = \"$1\" ]; then echo \"$u\"; nmcli -g connection.autoconnect connection show \"$u\"; break; fi; done", "_", ssid]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const lines = this.text.trim().split("\n");
+                root.profile = lines[0] ? { uuid: lines[0], autoJoin: lines[1] === "yes" } : null;
+            }
+        }
+    }
+
+    Process {
+        id: passwordQuery
+        property string uuid: ""
+        command: ["nmcli", "-s", "-g", "802-11-wireless-security.psk", "connection", "show", uuid]
+        stdout: StdioCollector {
+            onStreamFinished: root.password = this.text.trim()
+        }
     }
 }

@@ -169,6 +169,8 @@ PanelWindow {
             }
 
             BarItem {
+                menu: "controlCenter"
+                screenName: bar.modelData.name
                 Icon { glyph: Glyphs.controlCenter; anchors.verticalCenter: parent.verticalCenter }
             }
 

@@ -55,5 +55,20 @@
   "system.logOut.title": "Are you sure you want to quit all apps and log out now?",
   "system.logOut.message": "If you do nothing, you will be logged out automatically in {seconds} seconds.",
   "system.logOut.action": "Log Out",
-  "network.wrongPassword": "The password is incorrect."
+  "network.wrongPassword": "The password is incorrect.",
+  "controlCenter.title": "Control Center",
+  "controlCenter.on": "On",
+  "controlCenter.off": "Off",
+  "controlCenter.notConnected": "Not Connected",
+  "controlCenter.focus": "Do Not Disturb",
+  "controlCenter.display": "Display",
+  "controlCenter.notPlaying": "Not Playing",
+  "network.disconnect": "Disconnect",
+  "network.hidePassword": "Hide Password",
+  "network.copyPassword": "Copy Password",
+  "network.autoJoin": "Auto-Join",
+  "network.forget": "Forget This Network…",
+  "network.forget.title": "Forget Wi-Fi network “{name}”?",
+  "network.forget.message": "This computer will no longer join this network on its own, and you'll need its password to join it again.",
+  "network.forget.action": "Forget"
 }

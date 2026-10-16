@@ -44,6 +44,8 @@ Item {
     property int captureFps: 30
 
     readonly property alias texture: blurredV
+    /** The same scene unblurred, for the rim's refraction (a bent blur is invisible). */
+    readonly property alias sharpTexture: sharp
     readonly property bool ready: wallpaper.status === Image.Ready
     readonly property real dpr: monitor ? monitor.scale : 1
     readonly property int captures: windows.length
@@ -154,6 +156,17 @@ Item {
             for (let i = 0; i < captureViews.count; i++)
                 captureViews.itemAt(i).captureFrame();
         }
+    }
+
+    // One texel per point: sharp enough for the rim, half the device pixels.
+    ShaderEffectSource {
+        id: sharp
+        anchors.fill: parent
+        sourceItem: scene
+        textureSize: Qt.size(Math.max(2, Math.round(root.width)), Math.max(2, Math.round(root.height)))
+        smooth: true
+        hideSource: true
+        visible: false
     }
 
     ShaderEffectSource {

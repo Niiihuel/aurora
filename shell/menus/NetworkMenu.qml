@@ -9,6 +9,11 @@ import "../services"
  * under "Known Network", then "Other Networks" by signal strength with a lock
  * on secured ones. It scans while open. Choosing a known or open network
  * joins it; a new secured network asks for its password (`passwordRequested`).
+ *
+ * Choosing the network in use shows its details in place (the glass reshapes
+ * to them), like the Details of macOS's Wi-Fi settings: disconnect, show or
+ * copy the password, auto-join, and Forget This Network… (confirmed by an
+ * alert). The back row or Esc returns to the list.
  */
 MenuPanel {
     id: root
@@ -17,20 +22,47 @@ MenuPanel {
 
     signal passwordRequested(var network)
 
+    /** The network whose details are shown, or null for the list. */
+    property var detail: null
+    property bool showPassword: false
+
+    function openDetail(network) {
+        highlighted = null;
+        showPassword = false;
+        NetworkStatus.inspect(network);
+        detail = network;
+    }
+
+    /** Esc: leave the details. False when showing the list. */
+    function back() {
+        if (!detail)
+            return false;
+        highlighted = null;
+        detail = null;
+        showPassword = false;
+        NetworkStatus.password = "";
+        return true;
+    }
+
     Component.onCompleted: NetworkStatus.setScanning(true)
-    Component.onDestruction: NetworkStatus.setScanning(false)
+    Component.onDestruction: {
+        NetworkStatus.setScanning(false);
+        NetworkStatus.password = "";
+    }
+
+    // --- The list ----------------------------------------------------------------
 
     MenuHeader {
+        visible: !root.detail
         title: I18n.tr("network.wifi")
         hasSwitch: !!NetworkStatus.wifiDevice
         checked: NetworkStatus.wifiEnabled
         onToggled: on => NetworkStatus.setWifiEnabled(on)
     }
 
-    // --- Ethernet --------------------------------------------------------------
     Column {
         width: parent.width
-        visible: NetworkStatus.wired
+        visible: !root.detail && NetworkStatus.wired
 
         MenuSeparator {}
         MenuSectionTitle { text: I18n.tr("network.ethernet") }
@@ -43,10 +75,9 @@ MenuPanel {
         }
     }
 
-    // --- Wi-Fi -----------------------------------------------------------------
     Column {
         width: parent.width
-        visible: NetworkStatus.wifiEnabled && !!NetworkStatus.wifiNetwork
+        visible: !root.detail && NetworkStatus.wifiEnabled && !!NetworkStatus.wifiNetwork
 
         MenuSeparator {}
         MenuSectionTitle { text: I18n.tr("network.knownNetwork") }
@@ -58,12 +89,13 @@ MenuPanel {
             status: network && network.stateChanging ? I18n.tr("network.connecting") : ""
             trailingGlyph: NetworkStatus.secured(network) ? Glyphs.lock : null
             closeOnTrigger: false
+            onTriggered: root.openDetail(network)
         }
     }
 
     Column {
         width: parent.width
-        visible: NetworkStatus.wifiEnabled && !!NetworkStatus.wifiDevice
+        visible: !root.detail && NetworkStatus.wifiEnabled && !!NetworkStatus.wifiDevice
 
         MenuSeparator {}
         MenuSectionTitle { text: I18n.tr("network.otherNetworks") }
@@ -92,15 +124,108 @@ MenuPanel {
     }
 
     MenuItem {
-        visible: !NetworkStatus.wifiEnabled
+        visible: !root.detail && !NetworkStatus.wifiEnabled
         text: I18n.tr("network.wifiOff")
         enabled: false
     }
 
-    MenuSeparator {}
+    MenuSeparator { visible: !root.detail }
 
     MenuItem {
+        visible: !root.detail
         text: I18n.tr("network.settings")
         enabled: false
+    }
+
+    // --- A network's details -------------------------------------------------------
+
+    Column {
+        width: parent.width
+        visible: !!root.detail
+
+        MenuItem {
+            text: I18n.tr("network.wifi")
+            glyph: Glyphs.chevronBack
+            closeOnTrigger: false
+            onTriggered: root.back()
+        }
+
+        MenuDeviceItem {
+            badge: Glyphs.wifi(root.detail ? NetworkStatus.barsOf(root.detail) : 0)
+            active: !!root.detail && root.detail.connected
+            name: root.detail ? root.detail.name : ""
+            status: root.detail && root.detail.connected ? I18n.tr("network.connected") : ""
+            trailingGlyph: NetworkStatus.secured(root.detail) ? Glyphs.lock : null
+            closeOnTrigger: false
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            text: root.detail && root.detail.connected ? I18n.tr("network.disconnect") : I18n.tr("network.join")
+            closeOnTrigger: false
+            onTriggered: {
+                if (root.detail.connected) {
+                    NetworkStatus.disconnect(root.detail);
+                    root.back();
+                } else {
+                    NetworkStatus.join(root.detail);
+                }
+            }
+        }
+
+        Column {
+            width: parent.width
+            visible: NetworkStatus.secured(root.detail) && !!NetworkStatus.profile
+
+            MenuSeparator {}
+            MenuSectionTitle { text: I18n.tr("network.password") }
+            MenuInfo {
+                text: root.showPassword && NetworkStatus.password.length ? NetworkStatus.password : "••••••••••"
+            }
+            MenuItem {
+                text: root.showPassword ? I18n.tr("network.hidePassword") : I18n.tr("network.showPassword")
+                closeOnTrigger: false
+                onTriggered: {
+                    root.showPassword = !root.showPassword;
+                    if (root.showPassword)
+                        NetworkStatus.revealPassword();
+                    else
+                        NetworkStatus.password = "";
+                }
+            }
+            MenuItem {
+                text: I18n.tr("network.copyPassword")
+                onTriggered: NetworkStatus.copyPassword()
+            }
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            text: I18n.tr("network.autoJoin")
+            reserveMark: true
+            checked: !!NetworkStatus.profile && NetworkStatus.profile.autoJoin
+            enabled: !!NetworkStatus.profile
+            closeOnTrigger: false
+            onTriggered: NetworkStatus.setAutoJoin(!NetworkStatus.profile.autoJoin)
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            text: I18n.tr("network.forget")
+            destructive: true
+            onTriggered: {
+                const network = root.detail;
+                Dialogs.confirm({
+                    title: I18n.tr("network.forget.title", { name: network.name }),
+                    message: I18n.tr("network.forget.message"),
+                    action: I18n.tr("network.forget.action"),
+                    destructive: true,
+                    run: () => NetworkStatus.forget(network)
+                });
+            }
+        }
     }
 }

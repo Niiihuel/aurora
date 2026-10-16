@@ -73,6 +73,9 @@ Singleton {
             stepRequested(direction);
     }
 
+    /** A Control Center page to show when it opens (IPC, shortcuts); taken once. */
+    property string page: ""
+
     property string requested: ""
     property int requestSerial: 0
     function request(id) {

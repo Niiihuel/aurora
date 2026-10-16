@@ -76,6 +76,7 @@ PanelWindow {
         case "bluetooth": return bluetoothMenu;
         case "battery": return batteryMenu;
         case "system": return systemMenu;
+        case "controlCenter": return controlCenterMenu;
         default: return null;
         }
     }
@@ -196,6 +197,12 @@ PanelWindow {
     onPanelRectChanged: if (wanted) aim(false)
     onSettledChanged: if (settled && !wanted && merging) shownId = ""
 
+    SpringValue {
+        id: carrier
+        to: loader.item && loader.item.bare ? 0 : 1
+        preset: Motion.smooth
+    }
+
     /** The content's focus after a switch between menus. */
     SpringValue { id: focusIn; to: 1; preset: Motion.snappy }
 
@@ -250,8 +257,11 @@ PanelWindow {
 
         Keys.onPressed: event => {
             const panel = loader.item;
-            if (event.key === Qt.Key_Escape)
-                Menus.close();
+            if (event.key === Qt.Key_Escape) {
+                // A panel with levels (Control Center) steps back first.
+                if (!(panel && panel.back && panel.back()))
+                    Menus.close();
+            }
             else if (event.key === Qt.Key_Down && panel)
                 panel.move(1);
             else if (event.key === Qt.Key_Up && panel)
@@ -280,7 +290,8 @@ PanelWindow {
             // Round as a drop at first, the menu's corners once it has formed.
             radius: {
                 const drop = Math.min(width, height) / 2;
-                return drop + (Tokens.radius.menu - drop) * menuLayer.shaped;
+                const corner = (loader.item && loader.item.panelRadius) || Tokens.radius.menu;
+                return drop + (corner - drop) * menuLayer.shaped;
             }
             // A faint light, not a white drop: the glass shows its lensing
             // first and gains its veil as it forms.
@@ -290,7 +301,11 @@ PanelWindow {
             presence: menuLayer.wanted ? 0.25 + 0.75 * menuLayer.shaped : 1
             // Closing: the drop reaches the item whole and only then melts into
             // it (Apple's drop merges into the bar as a bump that flattens).
-            opacity: menuLayer.wanted ? 1 : menuLayer.span(menuLayer.progress, 0.0, 0.12)
+            // A bare panel (Control Center's grid) has no glass of its own
+            // behind its modules: this glass carries the pop and hands over to
+            // them as they focus in (and takes them back on the way out).
+            opacity: (menuLayer.wanted ? 1 : menuLayer.span(menuLayer.progress, 0.0, 0.12))
+                * Math.max(1 - content.reveal, carrier.value)
             track: [sx.value, sy.value, sw.value, sh.value]
         }
 
@@ -360,6 +375,11 @@ PanelWindow {
     Component {
         id: systemMenu
         SystemMenu { chrome: false; backdrop: menuBackdrop }
+    }
+
+    Component {
+        id: controlCenterMenu
+        ControlCenter { chrome: false; backdrop: menuBackdrop }
     }
 
     Component {

@@ -1,9 +1,13 @@
 #version 440
 // aurora's liquid glass. The optics come from the user's limn library: a
-// convex bezel as wide as the corner radius refracts the (already blurred)
-// backdrop, strongest at the rim, with a little chromatic dispersion; the
-// result is saturated, veiled with the tint and lit by a one-pixel hairline
-// facing the light, with a faint dark line just inside it (iOS 27's edge).
+// convex bezel as wide as the corner radius refracts the backdrop, strongest
+// at the rim, with a little chromatic dispersion. The middle shows the
+// blurred backdrop (frost); toward the rim the lookup moves to the sharp
+// scene, so what's behind visibly bends around the edge, as in Apple's
+// Liquid Glass (refracting a blur alone is invisible). The result is
+// saturated, veiled with the tint and lit along the rim: a soft band of
+// light facing the top-left and, fainter, the opposite side, over a bright
+// hairline with a faint dark line just inside it (iOS 27's edge).
 //
 // The outline is a rounded rectangle whose corners are superellipses
 // (|x|^p + |y|^p = r^p): p = 2 is a circular arc, p ≈ 4 matches Apple's
@@ -27,6 +31,7 @@ layout(std140, binding = 0) uniform buf {
 };
 
 layout(binding = 1) uniform sampler2D source;
+layout(binding = 2) uniform sampler2D sharp;
 
 const vec2 LIGHT = vec2(-0.5432, -0.8396); // normalized (-0.55, -0.85): top-left
 
@@ -97,6 +102,22 @@ void main() {
         scene += 0.2 * tap;
     }
 
+    // Toward the rim, the sharp scene: the bent content stays legible there.
+    float rimView = edgeOn * pow(1.0 - depth, 1.6) * 0.9;
+    if (rimView > 0.002) {
+        vec4 crisp = vec4(0.0);
+        for (int i = 0; i < 3; i++) {
+            vec2 at = uv + shift * (0.88 + 0.08 * float(i));
+            vec4 tap = texture(sharp, at);
+            if (material.y > 0.001) {
+                tap.r = texture(sharp, at + spread).r;
+                tap.b = texture(sharp, at - spread).b;
+            }
+            crisp += tap / 3.0;
+        }
+        scene = mix(scene, crisp, rimView);
+    }
+
     // Saturation on gamma RGB (the CSS saturate() matrix weights), then the
     // optional dimming layer for clear glass over bright content.
     float luma = dot(scene.rgb, vec3(0.213, 0.715, 0.072));
@@ -116,6 +137,12 @@ void main() {
     float facing = dot(normal, LIGHT);
     float glint = (1.0 - smoothstep(0.0, line, inset)) * (0.25 + 0.65 * facing * facing) * edgeOn;
     rgb = mix(rgb, vec3(1.0), glint);
+    // The specular band: light caught by the curved rim, strongest facing
+    // the light, a weaker reflection on the far side, fading inward.
+    float band = min(0.45 * bezel, 4.0);
+    float caught = (1.0 - smoothstep(0.0, band, inset)) * edgeOn;
+    float lit = 0.30 * pow(max(facing, 0.0), 2.0) + 0.12 * pow(max(-facing, 0.0), 2.0);
+    rgb = mix(rgb, vec3(1.0), caught * lit);
 
     // Interactive glass brightens under the pointer while pressed: a wide,
     // soft lift centred on the press point (about +8% luminance at full

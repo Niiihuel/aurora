@@ -55,5 +55,20 @@
   "system.logOut.title": "¿Seguro que quieres salir de todas las apps y cerrar la sesión ahora?",
   "system.logOut.message": "Si no haces nada, la sesión se cerrará automáticamente en {seconds} segundos.",
   "system.logOut.action": "Cerrar sesión",
-  "network.wrongPassword": "La contraseña no es correcta."
+  "network.wrongPassword": "La contraseña no es correcta.",
+  "controlCenter.title": "Centro de Control",
+  "controlCenter.on": "Activado",
+  "controlCenter.off": "Desactivado",
+  "controlCenter.notConnected": "No conectado",
+  "controlCenter.focus": "No molestar",
+  "controlCenter.display": "Pantalla",
+  "controlCenter.notPlaying": "Sin reproducción",
+  "network.disconnect": "Desconectar",
+  "network.hidePassword": "Ocultar contraseña",
+  "network.copyPassword": "Copiar contraseña",
+  "network.autoJoin": "Conectarse automáticamente",
+  "network.forget": "Olvidar esta red…",
+  "network.forget.title": "¿Olvidar la red Wi-Fi “{name}”?",
+  "network.forget.message": "Esta computadora ya no se conectará sola a esta red y necesitarás la contraseña para volver a conectarte.",
+  "network.forget.action": "Olvidar"
 }
