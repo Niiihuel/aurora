@@ -1,0 +1,7 @@
+singleton Settings 1.0 Settings.qml
+singleton Tokens 1.0 Tokens.qml
+singleton Motion 1.0 Motion.qml
+singleton Glyphs 1.0 Glyphs.qml
+singleton Menus 1.0 Menus.qml
+singleton I18n 1.0 I18n.qml
+singleton Dialogs 1.0 Dialogs.qml

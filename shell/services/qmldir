@@ -1,0 +1,6 @@
+singleton Wallpaper 1.0 Wallpaper.qml
+singleton NetworkStatus 1.0 NetworkStatus.qml
+singleton BluetoothStatus 1.0 BluetoothStatus.qml
+singleton BatteryStatus 1.0 BatteryStatus.qml
+singleton AudioStatus 1.0 AudioStatus.qml
+singleton Session 1.0 Session.qml

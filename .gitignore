@@ -1,0 +1,8 @@
+# Build output
+result
+result-*
+*.qsb
+*.qsb.tmp
+
+# Filled in by Quickshell with this machine's import paths (qmlls)
+.qmlls.ini
