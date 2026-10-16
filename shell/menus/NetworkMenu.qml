@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import "../core"
 import "../components/menu"
 import "../services"
@@ -102,7 +103,8 @@ MenuPanel {
         MenuSectionTitle { text: I18n.tr("network.otherNetworks") }
 
         Repeater {
-            model: NetworkStatus.otherNetworks
+            // Re-sorted on every signal change while scanning: keep the rows.
+            model: ScriptModel { values: NetworkStatus.otherNetworks }
             delegate: MenuDeviceItem {
                 required property var modelData
                 badge: Glyphs.wifi(NetworkStatus.barsOf(modelData))

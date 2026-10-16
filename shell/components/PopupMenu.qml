@@ -19,6 +19,11 @@ Item {
     property Item backdrop: null
     property bool open: false
     property bool upward: false
+    /**
+     * Refract the window's own content (an app window like Settings). Off
+     * for a menu in a transparent overlay: it lenses `backdrop` (the screen).
+     */
+    property bool refractWindow: true
     property rect from: Qt.rect(0, 0, 0, 0)
     property Item surface: null
     readonly property bool checks: items.some(i => i.checked !== undefined)
@@ -32,7 +37,7 @@ Item {
         const a = control.mapToItem(parent, 0, 0);
         from = Qt.rect(a.x, a.y, control.width, control.height);
         // Refract the window's own content (never this menu itself).
-        surface = Array.from(parent.children).find(c => c !== root && c.visible) ?? null;
+        surface = refractWindow ? (Array.from(parent.children).find(c => c !== root && c.visible) ?? null) : null;
         open = true;
     }
 

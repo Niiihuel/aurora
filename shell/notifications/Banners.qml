@@ -69,7 +69,9 @@ PanelWindow {
         }
 
         Repeater {
-            model: Notifications.banners
+            // A ScriptModel diffs by object: a banner arriving or leaving
+            // doesn't rebuild (and re-slide) the others.
+            model: ScriptModel { values: Notifications.banners }
             delegate: Item {
                 id: banner
                 required property var modelData

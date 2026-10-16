@@ -68,6 +68,7 @@ PanelWindow {
     // drawn full screen under the stage every frame).
     MultiEffect {
         id: frosted
+        visible: root.mine && root.editing
         anchors.fill: parent
         source: frozenLoader.item
         blurEnabled: true

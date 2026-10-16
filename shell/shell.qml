@@ -42,10 +42,14 @@ ShellRoot {
     WallpaperPicker {}
     // Screenshots and screen recording (Super+D), and the thumbnail after.
     CaptureLayer {}
-    // Screenshot and mark up (Print): one frozen layer per screen.
-    Variants {
-        model: Quickshell.screens
-        delegate: AnnotateLayer {}
+    // Screenshot and mark up (Print): one frozen layer per screen, built
+    // only while the editor is in use.
+    LazyLoader {
+        active: Annotate.active
+        Variants {
+            model: Quickshell.screens
+            delegate: AnnotateLayer {}
+        }
     }
     CaptureThumbnail {}
 
@@ -64,6 +68,8 @@ ShellRoot {
         function controlCenter(page: string): void { Menus.page = page; Menus.request("controlCenter"); }
         function activeMenu(): string { return Menus.active; }
         function accent(): string { return Tokens.accent.toString(); }
+        // wallpaper.sh calls this after changing the wallpaper.
+        function wallpaperChanged(): void { Wallpaper.refresh(); }
         // `capture`: the capture toolbar (or stop a recording), like Super+D.
         function capture(): void { Capture.toggle(); }
         // `screenshot region` / `screenshot monitor`: freeze, select, mark up (like Print).

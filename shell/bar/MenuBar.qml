@@ -67,11 +67,16 @@ PanelWindow {
         height: bar.barHeight
         y: -slide.value * bar.barHeight
         opacity: 1 - slide.value
+        // Fully away: nothing to draw (the clock would still redraw every second).
+        visible: slide.value < 0.999
 
         GlassBackdrop {
             id: backdrop
             screen: bar.modelData
             region: Qt.rect(0, 0, bar.width, bar.barHeight)
+            // Slid away over a full-screen window, it would keep capturing
+            // that window (a video, a game) 30 times a second for nothing.
+            captureWindows: bar.shown
         }
 
         Glass {
@@ -259,7 +264,7 @@ PanelWindow {
 
     SystemClock {
         id: clock
-        precision: SystemClock.Seconds
+        precision: Settings.clockSeconds ? SystemClock.Seconds : SystemClock.Minutes
     }
 
     readonly property string clockText: I18n.locale.toString(clock.date, Settings.clockSeconds ? "ddd d MMM H:mm:ss" : "ddd d MMM H:mm")

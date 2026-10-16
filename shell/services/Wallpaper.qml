@@ -49,7 +49,12 @@ Singleton {
         running: true
         command: ["sh", "-c", "find \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) -printf '%T@ %p\\n' 2>/dev/null | sort -rn | cut -d' ' -f2-", "_", root.dir]
         stdout: StdioCollector {
-            onStreamFinished: root.files = this.text.split("\n").filter(l => l.length)
+            onStreamFinished: {
+                const files = this.text.split("\n").filter(l => l.length);
+                // Same folder as before: keep the list (and the picker's tiles).
+                if (files.join("\n") !== root.files.join("\n"))
+                    root.files = files;
+            }
         }
     }
 
@@ -70,6 +75,10 @@ Singleton {
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
+                // Unchanged: don't wake every binding that reads the wallpaper.
+                if (this.text === root.lastQuery)
+                    return;
+                root.lastQuery = this.text;
                 const map = {};
                 for (const line of this.text.split("\n")) {
                     const m = line.match(/^:?\s*([^:\s]+):.*image:\s*(.+)$/);
@@ -81,8 +90,12 @@ Singleton {
         }
     }
 
+    property string lastQuery: ""
+
+    // A safety net only: wallpaper.sh tells the shell when it changes the
+    // wallpaper (`qs ipc call aurora wallpaperChanged`), and so does apply().
     Timer {
-        interval: 10000
+        interval: 120000
         running: !Settings.wallpaper.length
         repeat: true
         onTriggered: root.refresh()

@@ -83,8 +83,19 @@ Item {
     /**
      * Windows to capture, bottom to top: tiled before floating, older focus
      * before newer. Geometry comes from lastIpcObject, refreshed on events.
+     * `windows` only changes when this list really does (same windows, same
+     * places), so the captures aren't torn down and rebuilt on every refresh.
      */
-    readonly property var windows: {
+    property var windows: []
+    property string windowsKey: ""
+    onCandidatesChanged: {
+        const key = candidates.map(w => `${w.address}:${w.x},${w.y},${w.w},${w.h}`).join(" ");
+        if (key !== windowsKey) {
+            windowsKey = key;
+            windows = candidates;
+        }
+    }
+    readonly property var candidates: {
         const mon = monitor;
         const r = region;
         if (!shown || !captureWindows || !mon || r.width <= 0 || r.height <= 0)
@@ -102,7 +113,7 @@ Item {
             const x = o.at[0] - mon.x, y = o.at[1] - mon.y, w = o.size[0], h = o.size[1];
             const overlaps = x < r.x + r.width && x + w > r.x && y < r.y + r.height && y + h > r.y;
             if (overlaps)
-                list.push({ source: t.wayland, x, y, w, h, floating: !!o.floating, focus: o.focusHistoryID ?? 0 });
+                list.push({ source: t.wayland, address: t.address, x, y, w, h, floating: !!o.floating, focus: o.focusHistoryID ?? 0 });
         }
         list.sort((a, b) => (a.floating - b.floating) || (b.focus - a.focus));
         return list;
@@ -112,12 +123,17 @@ Item {
 
     Connections {
         target: Hyprland
-        enabled: root.shown
+        enabled: root.shown && root.captureWindows
         function onRawEvent(event) {
             switch (event.name) {
+            case "activewindowv2":
+                // Focus alone moves nothing; it only reorders windows we already capture.
+                if (root.captures > 0)
+                    refreshSoon.restart();
+                break;
             case "openwindow": case "closewindow": case "movewindow": case "movewindowv2":
             case "changefloatingmode": case "workspace": case "workspacev2":
-            case "fullscreen": case "activewindowv2": case "resizewindow":
+            case "fullscreen": case "resizewindow":
                 refreshSoon.restart();
             }
         }

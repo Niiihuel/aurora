@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import "../core"
 import "../components/menu"
 import "../services"
@@ -30,7 +31,7 @@ MenuPanel {
         MenuSectionTitle { text: I18n.tr("bluetooth.devices") }
 
         Repeater {
-            model: BluetoothStatus.devices
+            model: ScriptModel { values: BluetoothStatus.devices }
             delegate: MenuDeviceItem {
                 required property var modelData
                 readonly property real battery: BluetoothStatus.batteryOf(modelData)

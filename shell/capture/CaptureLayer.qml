@@ -495,12 +495,14 @@ PanelWindow {
     GlassBackdrop {
         id: menuBackdrop
         screen: root.screen
+        captureWindows: options.open || options.visible
         region: Qt.rect(0, Math.round(root.height * 0.3), root.width, Math.round(root.height * 0.7))
     }
 
     PopupMenu {
         id: options
         upward: true
+        refractWindow: false
         backdrop: menuBackdrop
         items: {
             const save = v => () => { Settings.captureSaveTo = v; };
@@ -529,6 +531,7 @@ PanelWindow {
     GlassBackdrop {
         id: countdownBackdrop
         screen: root.screen
+        captureWindows: root.counting
         region: Qt.rect(countdownDisc.x, countdownDisc.y, countdownDisc.width, countdownDisc.height)
     }
 

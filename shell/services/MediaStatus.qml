@@ -43,9 +43,14 @@ Singleton {
         return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
     }
 
-    // MPRIS doesn't push the position while playing; read it once a second.
+    /** How many views show the position (Control Center's media page); the clock runs only for them. */
+    property int watchers: 0
+    onWatchersChanged: if (watchers > 0 && player && player.positionSupported) position = player.position
+
+    // MPRIS doesn't push the position while playing; read it once a second,
+    // and only while it's on screen.
     Timer {
-        running: root.playing && root.player.positionSupported
+        running: root.watchers > 0 && root.playing && root.player.positionSupported
         interval: 1000
         repeat: true
         triggeredOnStart: true

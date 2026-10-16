@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import "../core"
 import "../components/menu"
 import "../services"
@@ -26,7 +27,7 @@ MenuPanel {
     MenuSectionTitle { text: I18n.tr("sound.output") }
 
     Repeater {
-        model: AudioStatus.outputs
+        model: ScriptModel { values: AudioStatus.outputs }
         delegate: MenuItem {
             required property var modelData
             text: AudioStatus.nameOf(modelData)

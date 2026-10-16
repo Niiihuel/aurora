@@ -22,6 +22,8 @@ Singleton {
     function reload() {
         entries = DesktopEntries.applications.values.filter(e => !e.noDisplay);
     }
+    /** What search matches besides the name, built once per app list. */
+    readonly property var searchText: entries.map(e => [e.genericName, (e.keywords || []).join(" "), e.id].join(" "))
     Component.onCompleted: reload()
     Timer {
         id: reloadSoon
@@ -52,10 +54,11 @@ Singleton {
     /** Best matches for `query`; with no query, the most used apps. */
     function search(query, limit) {
         const counts = launches.counts || {};
-        const apps = entries.map(e => ({
+        const alts = searchText;
+        const apps = entries.map((e, i) => ({
             entry: e,
             name: e.name,
-            alt: [e.genericName, (e.keywords || []).join(" "), e.id].join(" "),
+            alt: alts[i],
             uses: counts[e.id] || 0
         }));
         if (!query.trim().length)

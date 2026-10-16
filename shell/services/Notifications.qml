@@ -112,7 +112,12 @@ Singleton {
         onNotification: n => {
             n.tracked = true;
             // Closed by the sender (or expired there): drop its banner too.
-            n.closed.connect(() => root.hideBanner(n));
+            n.closed.connect(() => {
+                root.hideBanner(n);
+                const left = Object.assign({}, root.arrivals);
+                delete left[n.id];
+                root.arrivals = left;
+            });
             root.arrivals = Object.assign({}, root.arrivals, { [n.id]: Date.now() });
             const critical = n.urgency === NotificationUrgency.Critical;
             // Carried over a hot reload: already seen, history only.

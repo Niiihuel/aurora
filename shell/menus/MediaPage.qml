@@ -14,6 +14,10 @@ import "../services"
 MenuPanel {
     id: root
 
+    // The position clock in MediaStatus runs only while this page exists.
+    Component.onCompleted: MediaStatus.watchers += 1
+    Component.onDestruction: MediaStatus.watchers -= 1
+
     panelWidth: 300
 
     Item {

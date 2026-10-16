@@ -208,7 +208,7 @@ PanelWindow {
                         Image {
                             id: picture
                             anchors.fill: parent
-                            source: "file://" + tile.modelData
+                            source: root.visible && tile.visible ? "file://" + tile.modelData : ""
                             sourceSize: Qt.size(root.focusWidth * 1.5, root.focusHeight * 1.5)
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
