@@ -181,6 +181,23 @@ Singleton {
             tint: dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.30),
             blur: 0, refraction: 10, dispersion: 0.8, saturation: 1.2, dim: 0, magnify: 1.1, bezel: 7
         },
+        /**
+         * A switch's knob at rest: white with a lit rim and no inner shade
+         * (macOS Tahoe's reads ~90% white over the track).
+         */
+        switchKnob: {
+            tint: Qt.rgba(1, 1, 1, 0.94),
+            blur: 0, refraction: 3, dispersion: 0, saturation: 1, dim: 0, magnify: 1, bezel: 5, shade: 0
+        },
+        /**
+         * A switch's lifted knob: clearer than `lens`, barely magnifying, with
+         * a thin bent rim, so the track shows through it whole — its edges
+         * and color — as in WWDC25 "Meet Liquid Glass" (the switch sequence).
+         */
+        switchLens: {
+            tint: dark ? Qt.rgba(1, 1, 1, 0.06) : Qt.rgba(1, 1, 1, 0.10),
+            blur: 0, refraction: 6, dispersion: 0.5, saturation: 1.3, dim: 0, magnify: 1.04, bezel: 5
+        },
         bar: {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.60 * Settings.barTint) : Qt.rgba(0.961, 0.961, 0.969, 0.55 * Settings.barTint),
             blur: 8, refraction: 14, dispersion: 0.4, saturation: 2.0, dim: 0

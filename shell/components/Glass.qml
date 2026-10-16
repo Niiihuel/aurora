@@ -38,6 +38,8 @@ Item {
     property real radius: Tokens.radius.menu
     property real power: Tokens.cornerPower
     property bool shadow: true
+    /** Whether lifting casts a shadow when `shadow` is off (a small knob's lens doesn't). */
+    property bool liftShadow: true
     /**
      * The rim: bent bezel, dispersion and the lit hairline. Turn it off for
      * glass that runs edge to edge (the menu bar), which macOS draws flat.
@@ -67,7 +69,7 @@ Item {
     property var track: []
 
     readonly property bool pressed: touch.pressed || held
-    readonly property bool opaque: Settings.reduceTransparency || !backdrop || (!backdrop.ready && !refracts)
+    readonly property bool opaque: Settings.reduceTransparency || (!refracts && (!backdrop || !backdrop.ready))
     signal clicked()
 
     // --- Press response ------------------------------------------------------
@@ -115,7 +117,8 @@ Item {
             saturation: mix(a.saturation, b.saturation),
             dim: mix(a.dim, b.dim),
             magnify: mix(a.magnify ?? 1, b.magnify ?? 1),
-            bezel: mix(a.bezel ?? 0, b.bezel ?? 0)
+            bezel: mix(a.bezel ?? 0, b.bezel ?? 0),
+            shade: mix(a.shade ?? 1, b.shade ?? 1)
         };
     }
 
@@ -157,7 +160,7 @@ Item {
     // growing with the lift so it reads as rising off the surface.
     RectangularShadow {
         visible: opacity > 0.01
-        opacity: root.shadow ? 1 : Math.max(0, Math.min(1, lift.value))
+        opacity: root.shadow ? 1 : root.liftShadow ? Math.max(0, Math.min(1, lift.value)) : 0
         anchors.fill: parent
         radius: root.radius
         offset: Qt.vector2d(0, Tokens.shadow.offsetY)
@@ -212,7 +215,7 @@ Item {
         // applies to rounded rectangles.
         property real power: root.radius >= 0.5 * Math.min(width, height) - 0.5 ? 2 : root.power
         property real dpr: root.dpr
-        property vector4d glow: Qt.vector4d(root.glowAt.x, root.glowAt.y, root.glow, 0)
+        property vector4d glow: Qt.vector4d(root.glowAt.x, root.glowAt.y, root.glow, root.effective.shade ?? 1)
         property vector4d lens: Qt.vector4d(root.effective.magnify ?? 1, root.effective.bezel ?? 0, root.edge ? 1 : 0, root.bloom * 0.12)
 
         fragmentShader: Qt.resolvedUrl("../shaders/glass.frag.qsb")

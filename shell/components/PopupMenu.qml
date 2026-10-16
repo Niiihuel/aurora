@@ -8,7 +8,8 @@ import "../core"
  *
  * `items`: [{ label, checked?, destructive?, enabled?, act }] — a check column
  * appears when any item can be checked. `show(control)` opens it under the
- * control; picking an item closes it and runs `act`; a click elsewhere closes.
+ * control; picking an item closes it and runs `act`; a click elsewhere or
+ * scrolling closes it.
  */
 Item {
     id: root
@@ -33,10 +34,16 @@ Item {
         open = true;
     }
 
+    // A click elsewhere closes it, and so does scrolling (as on macOS: the
+    // menu would otherwise float away from the control that opened it).
     MouseArea {
         anchors.fill: parent
         enabled: root.open
         onPressed: root.open = false
+        onWheel: wheel => {
+            root.open = false;
+            wheel.accepted = true;
+        }
     }
 
     GlassMorph {

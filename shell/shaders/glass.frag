@@ -26,7 +26,7 @@ layout(std140, binding = 0) uniform buf {
     float radius;    // corner radius, points
     float power;     // corner superellipse exponent
     float dpr;       // device pixels per point
-    vec4 glow;       // press highlight: centre in item uv (xy), strength 0–1 (z)
+    vec4 glow;       // press highlight: centre in item uv (xy), strength 0–1 (z); inner edge shade 0–1 (w)
     vec4 lens;       // magnification of the middle (x; 1 = none), rim bezel width in points (y; 0 = corner radius), edge on/off (z), bloom 0–1 (w)
 };
 
@@ -133,7 +133,8 @@ void main() {
     float line = max(pixel, 0.75);
     float inset = -d;
     float shade = smoothstep(0.0, line, inset) * (1.0 - smoothstep(line, line + 2.5, inset));
-    rgb *= 1.0 - 0.14 * shade * edgeOn;
+    // A solid knob drops it (glow.w = 0): Apple's reads as clean white with a lit rim.
+    rgb *= 1.0 - 0.14 * shade * edgeOn * glow.w;
     float facing = dot(normal, LIGHT);
     float glint = (1.0 - smoothstep(0.0, line, inset)) * (0.25 + 0.65 * facing * facing) * edgeOn;
     rgb = mix(rgb, vec3(1.0), glint);
@@ -143,6 +144,9 @@ void main() {
     float caught = (1.0 - smoothstep(0.0, band, inset)) * edgeOn;
     float lit = 0.30 * pow(max(facing, 0.0), 2.0) + 0.12 * pow(max(-facing, 0.0), 2.0);
     rgb = mix(rgb, vec3(1.0), caught * lit);
+    // The rim is the glass's own light: over a clear source (a lens past
+    // its control's edge) it still shows as an outline.
+    alpha = mix(alpha, 1.0, max(glint, caught * lit));
 
     // Interactive glass brightens under the pointer while pressed: a wide,
     // soft lift centred on the press point (about +8% luminance at full
