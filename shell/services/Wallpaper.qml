@@ -10,13 +10,48 @@ import "../core"
  * when set; otherwise the wallpaper daemon is asked (`awww query`, which prints
  * "<output>: …, currently displaying: image: <path>" per output). The daemon
  * has no change events, so the answer is refreshed on a slow timer and on
- * demand; once aurora sets wallpapers itself this becomes push-based.
+ * demand; aurora's own picker updates it at once when it applies one.
+ *
+ * `files` lists ~/wallpapers (subfolders too), newest first. `apply` sets one
+ * on every output with a growing-circle transition that starts at `fx,fy`
+ * (fractions of the screen, from its top-left) — the picker passes the
+ * chosen thumbnail's centre, so the new wallpaper spreads out of it like a
+ * drop — then runs the desktop's own follow-ups (lock and login screen
+ * copies, terminal colors) through wallpaper.sh's `post` step.
  */
 Singleton {
     id: root
 
     /** output name → absolute image path, from the daemon. */
     property var byOutput: ({})
+    readonly property string dir: Quickshell.env("HOME") + "/wallpapers"
+    /** Image paths, newest first. */
+    property var files: []
+
+    function rescan() {
+        if (!scan.running)
+            scan.running = true;
+    }
+
+    function apply(path, fx, fy) {
+        const map = {};
+        for (const s of Quickshell.screens)
+            map[s.name] = path;
+        byOutput = map;
+        Quickshell.execDetached(["sh", "-c",
+            "awww img \"$1\" --transition-type grow --transition-pos \"$2,$3\" --transition-duration 1.1 --transition-fps 120 --transition-bezier .32,.72,0,1; " +
+            "s=\"$HOME/.config/hypr/scripts/wallpaper.sh\"; [ -x \"$s\" ] && \"$s\" post \"$1\" || true",
+            "_", path, Math.max(0, Math.min(1, fx)).toFixed(3), Math.max(0, Math.min(1, 1 - fy)).toFixed(3)]);
+    }
+
+    Process {
+        id: scan
+        running: true
+        command: ["sh", "-c", "find \"$1\" -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) -printf '%T@ %p\\n' 2>/dev/null | sort -rn | cut -d' ' -f2-", "_", root.dir]
+        stdout: StdioCollector {
+            onStreamFinished: root.files = this.text.split("\n").filter(l => l.length)
+        }
+    }
 
     function pathFor(output) {
         if (Settings.wallpaper.length)

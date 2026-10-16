@@ -83,5 +83,6 @@
   "launcher.noResults": "No Results",
   "launcher.image": "Image {size}",
   "lock.password": "Enter Password",
-  "lock.wrong": "Incorrect password"
+  "lock.wrong": "Incorrect password",
+  "wallpaper.empty": "No wallpapers in ~/wallpapers"
 }
