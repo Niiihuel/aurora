@@ -3,10 +3,11 @@ import "../../core"
 import ".."
 
 /**
- * One Control Center module, after macOS Tahoe: its own piece of liquid
- * glass (there is no panel behind the modules). A 1×1 module is a circle, a
- * 2×1 one a capsule (`round`), larger ones rounded rectangles. Put its
- * controls inside.
+ * One Control Center module, after macOS Tahoe: a lighter platter of liquid
+ * glass on the Control Center's panel. A 1×1 module is a circle, a 2×1 one a
+ * capsule (`round`), larger ones rounded rectangles. Put its controls inside.
+ * It pops in as the panel focuses (a small scale and fade on the snappy
+ * spring, each row a beat after the one above).
  *
  * Pressing it (`pressed`, set by the module's own controls) grows it on the
  * press spring, like interactive glass. A module that is one action as a
@@ -42,7 +43,19 @@ Item {
         to: root.pressed && !Motion.reduced ? Motion.pressScale : 1
         preset: Motion.press
     }
-    scale: lift.value
+    property bool shown: false
+    SpringValue {
+        id: appear
+        to: root.shown ? 1 : 0
+        preset: Motion.snappy
+    }
+    Timer {
+        interval: Motion.menuPhases.focusStart * 1000 + 35 * Math.round(root.y / 75)
+        running: true
+        onTriggered: root.shown = true
+    }
+    scale: lift.value * (0.88 + 0.12 * appear.value)
+    opacity: appear.value
 
     Glass {
         anchors.fill: parent

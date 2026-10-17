@@ -90,12 +90,16 @@ Singleton {
     readonly property var menu: ({ padding: 6, itemHeight: 24, separatorInset: 10, gap: 4, edgeMargin: 6, minWidth: 240, maxWidth: 360, markColumn: 22, itemInset: 10 })
 
     /**
-     * Control Center, after macOS Tahoe: a 4-column grid of modules, each its
-     * own piece of glass with no panel behind them. A unit is one column wide
-     * and as tall; 1×1 modules are circles, 2×1 capsules, larger ones rounded
-     * rectangles of `radius`. `toggle` is the round button inside a capsule.
+     * Control Center, after macOS Tahoe: a panel of regular glass holding a
+     * 4-column grid of modules, each a lighter platter of glass
+     * (`glass.module`) `padding` in from the panel's edge. A unit is one
+     * column wide and as tall; 1×1 modules are circles, 2×1 capsules, larger
+     * ones rounded rectangles of `radius` (the panel's radius is `radius` +
+     * `padding`, concentric). `toggle` is the round button inside a capsule.
      */
-    readonly property var controlCenter: ({ width: 292, padding: 0, gap: 12, radius: 22, toggle: 36 })
+    readonly property var controlCenter: ({ width: 292, padding: 10, gap: 10, radius: 16, toggle: 36 })
+    /** Notification Center: the column's width and the panel's padding (cards of `radius.tile`; the panel's radius is tile + padding). */
+    readonly property var notificationCenter: ({ width: 344, padding: 10 })
     readonly property color platter: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(1, 1, 1, 0.45)
     readonly property color platterHighlight: dark ? Qt.rgba(1, 1, 1, 0.13) : Qt.rgba(1, 1, 1, 0.70)
     /** Settings: a group of rows on the window's background. */
@@ -139,12 +143,14 @@ Singleton {
             blur: 8, refraction: 14, dispersion: 0.5, saturation: 2.2, dim: 0
         },
         /**
-         * A Control Center module: lighter than `regular` (Tahoe's modules
-         * show more of what's behind them) but still veiled for its labels.
+         * A Control Center module: a lighter platter on the panel's regular
+         * glass. It samples the backdrop, not the panel, so its tint is the
+         * panel's veil with a light wash on top; its rim lenses the scene
+         * over a 12 pt band so each module reads as its own piece.
          */
         module: {
-            tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.34) : Qt.rgba(0.961, 0.961, 0.969, 0.32),
-            blur: 8, refraction: 14, dispersion: 0.5, saturation: 2.2, dim: 0
+            tint: dark ? Qt.rgba(0.26, 0.26, 0.27, 0.52) : Qt.rgba(0.98, 0.98, 0.985, 0.70),
+            blur: 8, refraction: 14, dispersion: 0.5, saturation: 2.2, dim: 0, bezel: 12
         },
         /**
          * A Control Center control that is on: bright white glass (still
@@ -153,7 +159,7 @@ Singleton {
          */
         toggleOn: {
             tint: Qt.rgba(1, 1, 1, 0.86),
-            blur: 8, refraction: 14, dispersion: 0.5, saturation: 1.4, dim: 0
+            blur: 8, refraction: 14, dispersion: 0.5, saturation: 1.4, dim: 0, bezel: 10
         },
         /**
          * The lock screen's big clock: frosted glass numerals over the
@@ -190,7 +196,7 @@ Singleton {
          */
         lens: {
             tint: dark ? Qt.rgba(1, 1, 1, 0.16) : Qt.rgba(1, 1, 1, 0.30),
-            blur: 0, refraction: 10, dispersion: 0.8, saturation: 1.2, dim: 0, magnify: 1.1, bezel: 7
+            blur: 0, refraction: 10, dispersion: 0.4, saturation: 1.2, dim: 0, magnify: 1.1, bezel: 7
         },
         /**
          * A switch's knob at rest: white with a lit rim and no inner shade

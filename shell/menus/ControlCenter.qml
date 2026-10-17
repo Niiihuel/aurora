@@ -7,8 +7,8 @@ import "../components/controlcenter"
 import "../services"
 
 /**
- * Control Center, after macOS Tahoe: a 4-column grid where every module is
- * its own piece of liquid glass, with no panel behind them.
+ * Control Center, after macOS Tahoe: a panel of glass holding a 4-column
+ * grid where every module is its own lighter platter of liquid glass.
  *
  *   ( Wi-Fi        )  ┌ Now Playing ┐
  *    (BT)  (Airpl.)   └─────────────┘
@@ -23,10 +23,9 @@ import "../services"
  * that extra's own menu on a panel of glass that the menu layer reshapes to,
  * and it fades in. Esc or the back row steps back; Esc on the grid closes.
  *
- * `bare` tells the menu layer there's no panel glass while the grid shows:
- * its one glass carries the pop out of the menu bar and hands over to the
- * modules as they focus in. It answers the layer like a MenuPanel (`move`,
- * `activate`, `highlighted`), forwarding to the page while one is shown.
+ * The menu layer's glass is the panel (`bare` stays false). It answers the
+ * layer like a MenuPanel (`move`, `activate`, `highlighted`), forwarding to
+ * the page while one is shown.
  */
 Item {
     id: root
@@ -34,8 +33,8 @@ Item {
     property Item backdrop: null
     property bool chrome: true
     readonly property bool isMenuPanel: true
-    readonly property bool bare: !page.length
-    readonly property real panelRadius: page.length ? Tokens.radius.menu : cc.radius
+    readonly property bool bare: false
+    readonly property real panelRadius: page.length ? Tokens.radius.menu : cc.radius + cc.padding
     property Item highlighted: null
     /** Window-space geometry the modules' glass depends on (set by the menu layer). */
     property var track: []
@@ -47,8 +46,8 @@ Item {
     readonly property var cc: Tokens.controlCenter
     readonly property real unit: (cc.width - 3 * cc.gap) / 4
 
-    implicitWidth: pageItem ? pageItem.implicitWidth : cc.width
-    implicitHeight: pageItem ? back.height + pageItem.implicitHeight : 6 * unit + 5 * cc.gap
+    implicitWidth: pageItem ? pageItem.implicitWidth : cc.width + 2 * cc.padding
+    implicitHeight: pageItem ? back.height + pageItem.implicitHeight : 6 * unit + 5 * cc.gap + 2 * cc.padding
 
     Component.onCompleted: {
         DisplayStatus.refresh();
@@ -122,13 +121,13 @@ Item {
             highlighted.activate();
     }
 
-    // Standalone (gallery): a panel of glass behind a page.
+    // Standalone (gallery): the panel of glass.
     Glass {
-        visible: root.chrome && !root.bare
+        visible: root.chrome
         anchors.fill: parent
         backdrop: root.backdrop
         material: Tokens.glass.regular
-        radius: Tokens.radius.menu
+        radius: root.panelRadius
     }
 
     // The content that just changed fades in while the glass reshapes.
@@ -155,7 +154,8 @@ Item {
         Item {
             id: grid
             anchors.fill: parent
-            visible: root.bare
+            anchors.margins: root.cc.padding
+            visible: !root.page.length
 
             CCCapsule {
                 x: root.at(0); y: root.at(0); width: root.span(2); height: root.unit
@@ -358,6 +358,7 @@ Item {
                     font.weight: Font.DemiBold
                 }
                 CCSlider {
+                    id: soundSlider
                     backdrop: root.backdrop
                     x: Tokens.space.l
                     width: parent.width - 2 * Tokens.space.l - outputs.width - Tokens.space.s
@@ -373,8 +374,7 @@ Item {
                     id: outputs
                     anchors.right: parent.right
                     anchors.rightMargin: Tokens.space.m
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Tokens.space.xs + 1
+                    anchors.verticalCenter: soundSlider.verticalCenter
                     width: 28
                     height: 28
                     radius: 14
@@ -432,7 +432,7 @@ Item {
 
         Item {
             id: back
-            visible: !root.bare
+            visible: root.page.length > 0
             width: parent.width
             height: 30
 
@@ -460,7 +460,7 @@ Item {
         Loader {
             id: pageLoader
             y: back.height
-            active: !root.bare
+            active: root.page.length > 0
             sourceComponent: root.page === "network" ? networkPage
                 : root.page === "bluetooth" ? bluetoothPage
                 : root.page === "sound" ? soundPage

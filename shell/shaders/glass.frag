@@ -64,17 +64,23 @@ void main() {
     vec2 g = vec2(outline(p + e.xy) - outline(p - e.xy), outline(p + e.yx) - outline(p - e.yx));
     vec2 normal = dot(g, g) > 1e-8 ? normalize(g) : vec2(0.0, -1.0);
 
-    // Bezel profile h(u) = (1 - u^4)^(1/4) across a band as wide as the
-    // corner: steep at the edge, flat in the middle. Its slope tilts the
-    // surface normal, and a ray refracted through it (n = 1.5) shifts the
-    // lookup inward; the shift fades in from the very edge like a drop.
+    // Bezel profile h(u) = (1 - u^k)^(1/k) across the band. A wide bezel
+    // (panels, modules: k → 2, a quarter circle) bends smoothly all the way
+    // to the edge, so the band visibly lenses what's behind it — a quartic
+    // profile there only bent the outermost points and read as a flat
+    // outline. A narrow bezel (a control's knob over its own labels: k → 4)
+    // stays flat until the very edge, or the label gets pulled into the rim
+    // as ghost text. Its slope tilts the surface normal, and a ray refracted
+    // through it (n = 1.5) shifts the lookup inward; the shift fades in from
+    // the very edge like a drop.
     // On a capsule the corner radius is half the height, so a bezel that
     // wide would bend the whole surface; lens.y keeps the bend to a rim and
     // leaves a flat middle, as Apple's lifted knobs do.
     float bezel = max(lens.y > 0.0 ? min(lens.y, cornerRadius()) : cornerRadius(), 4.0);
     float depth = clamp(-d / bezel, 0.0, 1.0);
     float u = 1.0 - depth;
-    float slope = min(u * u * u / pow(max(1.0 - u * u * u * u, 1e-4), 0.75), 40.0);
+    float k = clamp(24.0 / bezel, 2.0, 4.0);
+    float slope = min(pow(u, k - 1.0) / pow(max(1.0 - pow(u, k), 1e-4), (k - 1.0) / k), 40.0);
     vec3 n = normalize(vec3(normal * slope, 1.0));
     vec3 ray = refract(vec3(0.0, 0.0, -1.0), n, 1.0 / 1.5);
     vec2 bend = ray.xy / max(-ray.z, 0.25) * smoothstep(0.0, 0.12, depth) / 0.4;
@@ -132,17 +138,23 @@ void main() {
     // whatever it sits on.
     float line = max(pixel, 0.75);
     float inset = -d;
-    float shade = smoothstep(0.0, line, inset) * (1.0 - smoothstep(line, line + 2.5, inset));
+    float shade = smoothstep(0.0, line, inset) * (1.0 - smoothstep(line, line + max(2.5, 0.25 * bezel), inset));
     // A solid knob drops it (glow.w = 0): Apple's reads as clean white with a lit rim.
     rgb *= 1.0 - 0.14 * shade * edgeOn * glow.w;
+    // Lit from the top-left: the hairline is bright where the rim faces the
+    // light, faint along the sides and a dim reflection on the far side —
+    // never a uniform outline (Apple's dark pill, measured: the top edge
+    // ~2.5x the sides, the bottom barely there).
     float facing = dot(normal, LIGHT);
-    float glint = (1.0 - smoothstep(0.0, line, inset)) * (0.25 + 0.65 * facing * facing) * edgeOn;
+    float toward = pow(max(facing, 0.0), 1.5);
+    float away = pow(max(-facing, 0.0), 2.0);
+    float glint = (1.0 - smoothstep(0.0, line, inset)) * (0.10 + 0.45 * toward + 0.08 * away) * edgeOn;
     rgb = mix(rgb, vec3(1.0), glint);
-    // The specular band: light caught by the curved rim, strongest facing
-    // the light, a weaker reflection on the far side, fading inward.
-    float band = min(0.45 * bezel, 4.0);
-    float caught = (1.0 - smoothstep(0.0, band, inset)) * edgeOn;
-    float lit = 0.30 * pow(max(facing, 0.0), 2.0) + 0.12 * pow(max(-facing, 0.0), 2.0);
+    // The specular band: light caught by the curved rim, lit the same way,
+    // falling off exponentially over about a third of the bezel (Apple's
+    // fades over ~4% of the shape, a soft gradient rather than a line).
+    float caught = exp(-inset / max(0.3 * bezel, 1.5)) * edgeOn;
+    float lit = 0.03 + 0.09 * toward + 0.02 * away;
     rgb = mix(rgb, vec3(1.0), caught * lit);
     // The rim is the glass's own light: over a clear source (a lens past
     // its control's edge) it still shows as an outline.
