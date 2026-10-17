@@ -117,3 +117,7 @@ Built one section at a time, each verified with logs, screenshots and frame timi
 10. Hyprland config, login screen and app colors
 
 All ten are in place; current work is polish (motion fitted to Apple's footage, glass optics).
+
+## License
+
+MIT — see `LICENSE`. Inter and the other fonts and tools aurora uses keep their own licenses.
