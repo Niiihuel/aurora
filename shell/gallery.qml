@@ -241,8 +241,9 @@ ShellRoot {
                 hideRefracted: true
                 material: Tokens.glass.knob
                 liftedMaterial: Tokens.glass.lens
-                held: !knobX.settled
-                pressScale: 1.22
+                held: Math.abs(knobX.to - knobX.value) > 0.45 * seg.width / 2
+                pressScale: 1.3
+                releasePreset: Motion.land
                 shadow: false
                 track: [x]
 

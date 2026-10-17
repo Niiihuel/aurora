@@ -7,6 +7,11 @@ import "../core"
  * lifts into a clear lens that shows the control's "selected" look through
  * it (solid track, full-weight labels), the way Apple's knob does.
  *
+ * Fitted to Apple's adoption-guide video (30 fps): the knob lifts ~1.3x
+ * (1.30 wide, 1.37 tall) and keeps that size for the first half of the
+ * travel; then the lift lands on Motion.land, so the knob is squashing into
+ * place as it arrives instead of sitting fat and deflating afterwards.
+ *
  * `options` are the labels; `selected` is the index; a click emits
  * `activated(index)` and the owner sets `selected` from the real state.
  */
@@ -102,8 +107,9 @@ Item {
         hideRefracted: true
         material: Tokens.glass.knob
         liftedMaterial: Tokens.glass.lens
-        held: !knobX.settled
-        pressScale: 1.18
+        held: Math.abs(knobX.to - knobX.value) > 0.45 * root.segment
+        pressScale: 1.3
+        releasePreset: Motion.land
         shadow: false
         track: [x, root.width]
 

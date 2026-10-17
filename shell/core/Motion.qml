@@ -64,6 +64,14 @@ Singleton {
      */
     readonly property var press: ({ duration: 0.30, bounce: 0.35 })
     readonly property real pressScale: 1.075
+    /**
+     * A lifted knob landing (segmented control, switch). Measured on Apple's
+     * segmented control (Liquid Glass adoption guide video, 30 fps): on
+     * release the lens relaxes toward the knob on a loose spring that
+     * squashes ~6% under the rest size, rebounds ~2% over and settles
+     * ~0.75 s later, while the knob is still arriving.
+     */
+    readonly property var land: ({ duration: 0.42, bounce: 0.55 })
     /** Press highlight: quick to light up, slower to fade. */
     readonly property int glowIn: 120
     readonly property int glowOut: 300

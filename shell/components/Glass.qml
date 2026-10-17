@@ -66,6 +66,8 @@ Item {
     property bool interactive: false
     property bool held: false
     property real pressScale: Motion.pressScale
+    /** The spring the lift settles back on; a knob lands on Motion.land (a squash and a rebound). */
+    property var releasePreset: Motion.press
     property var track: []
 
     readonly property bool pressed: touch.pressed || held
@@ -77,7 +79,7 @@ Item {
     SpringValue {
         id: lift
         to: root.pressed && !Motion.reduced ? 1 : 0
-        preset: Motion.press
+        preset: root.pressed ? Motion.press : root.releasePreset
     }
     scale: 1 + (root.pressScale - 1) * lift.value
 
@@ -151,7 +153,8 @@ Item {
         smooth: true
         sourceItem: root.refracts
         sourceRect: root.lensRect
-        textureSize: Qt.size(Math.max(1, Math.ceil(root.lensRect.width * root.dpr)), Math.max(1, Math.ceil(root.lensRect.height * root.dpr)))
+        // At the lifted size too: a lens scaled 1.7x over a 1x capture went soft.
+        textureSize: Qt.size(Math.max(1, Math.ceil(root.lensRect.width * root.dpr * Math.max(1, root.scale))), Math.max(1, Math.ceil(root.lensRect.height * root.dpr * Math.max(1, root.scale))))
     }
 
     // --- Surface -------------------------------------------------------------
