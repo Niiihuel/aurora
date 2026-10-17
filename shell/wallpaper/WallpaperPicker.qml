@@ -15,9 +15,12 @@ import "../services"
  * strip reads as depth, and the whole row glides on a spring as the choice
  * moves.
  *
- * Applying grows the new wallpaper out of the chosen thumbnail as a circle
- * (Wallpaper.apply), like a drop spreading, and the lens answers with a small
- * press. The picker stays open so you can keep trying.
+ * The lens behaves like the segmented control's knob: it lifts a little and
+ * magnifies more while the row glides under it, and lands on Motion.land (a
+ * squash and a rebound) as the choice settles. Applying grows the new
+ * wallpaper out of the chosen thumbnail as a circle (Wallpaper.apply), like
+ * a drop spreading, and the lens answers with the same press and landing.
+ * The picker stays open so you can keep trying.
  *
  * ←/→ or the wheel move, Return or a click on the chosen one applies, a click
  * on a neighbour moves to it, Esc or a click outside closes.
@@ -27,7 +30,17 @@ PanelWindow {
 
     property bool shown: false
     property int selected: 0
+    /** The chosen picture's path, so a rescan that reorders the list keeps it. */
+    property string chosen: ""
     readonly property var files: Wallpaper.files
+
+    onSelectedChanged: chosen = files[selected] || ""
+    // The rescan on open can land after it (a new download shifts the list): stay on the same picture.
+    onFilesChanged: {
+        const i = files.indexOf(chosen);
+        selected = Math.max(0, i >= 0 ? i : Math.min(selected, files.length - 1));
+        slide.snap(selected);
+    }
 
     function toggle() {
         if (shown) {
@@ -37,6 +50,7 @@ PanelWindow {
         Wallpaper.rescan();
         const current = Wallpaper.pathFor(screen.name);
         selected = Math.max(0, files.indexOf(current));
+        chosen = files[selected] || "";
         slide.snap(selected);
         shown = true;
         Qt.callLater(() => keys.forceActiveFocus());
@@ -54,6 +68,7 @@ PanelWindow {
         // Where the chosen thumbnail sits on the screen: the new wallpaper grows from there.
         const centre = lens.mapToItem(null, lens.width / 2, lens.height / 2);
         Wallpaper.apply(path, centre.x / root.width, centre.y / root.height);
+        lens.bumping = true;
         bump.restart();
     }
 
@@ -72,6 +87,8 @@ PanelWindow {
         preset: Motion.snappy
         epsilon: 0.002
     }
+    /** The row is still more than half a step from the choice: the lens stays lifted. */
+    readonly property bool moving: Math.abs(slide.to - slide.value) > 0.45
 
     screen: {
         const focused = Hyprland.focusedMonitor;
@@ -131,10 +148,19 @@ PanelWindow {
         scale: 0.94 + 0.06 * openness.value
         transformOrigin: Item.Bottom
 
-        // Clicks on the panel itself don't close it; the wheel moves.
+        // Clicks on the panel itself don't close it; the wheel moves one
+        // picture per notch (a touchpad sends many small steps).
         MouseArea {
+            id: wheelArea
             anchors.fill: parent
-            onWheel: wheel => root.move(wheel.angleDelta.y > 0 || wheel.angleDelta.x > 0 ? -1 : 1)
+            property real wheel: 0
+            onWheel: event => {
+                wheelArea.wheel += event.angleDelta.y || event.angleDelta.x;
+                if (Math.abs(wheelArea.wheel) < 120)
+                    return;
+                root.move(wheelArea.wheel > 0 ? -1 : 1);
+                wheelArea.wheel = 0;
+            }
         }
 
         Glass {
@@ -165,15 +191,19 @@ PanelWindow {
             visible: root.files.length > 0
             backdrop: pickerBackdrop
             material: Tokens.glass.lens
+            liftedMaterial: Object.assign({}, Tokens.glass.lens, { magnify: 1.18 })
             radius: 22
             shadow: false
-            scale: bumpScale
-            property real bumpScale: 1
+            held: root.moving || bumping
+            pressScale: 1.06
+            releasePreset: Motion.land
             track: [panel.scale, scale]
-            SequentialAnimation {
+            /** An apply presses the lens for a beat; it lands like after a move. */
+            property bool bumping: false
+            Timer {
                 id: bump
-                NumberAnimation { target: lens; property: "bumpScale"; to: 0.94; duration: 90; easing.type: Easing.OutQuad }
-                NumberAnimation { target: lens; property: "bumpScale"; to: 1; duration: 420; easing.type: Easing.OutBack; easing.overshoot: 2.2 }
+                interval: 90
+                onTriggered: lens.bumping = false
             }
         }
 
@@ -198,7 +228,7 @@ PanelWindow {
                     x: (panel.width - width) / 2 + Math.sign(d) * (ad <= 1 ? ad * (root.focusWidth * 0.78) : root.focusWidth * 0.78 + (ad - 1) * root.focusWidth * 0.55)
                     y: 20
                     z: -ad
-                    scale: s * (index === root.selected ? lens.bumpScale : 1)
+                    scale: s * (index === root.selected ? lens.scale : 1)
                     opacity: Math.max(0, 1 - 0.28 * ad)
 
                     ClippingRectangle {
@@ -209,7 +239,8 @@ PanelWindow {
                         Image {
                             id: picture
                             anchors.fill: parent
-                            source: root.visible && tile.visible ? "file://" + tile.modelData : ""
+                            // Kept decoded while closed (a few MB): reopening shows them at once.
+                            source: tile.ad < 5 ? "file://" + tile.modelData : ""
                             sourceSize: Qt.size(root.focusWidth * 1.5, root.focusHeight * 1.5)
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true

@@ -16,13 +16,19 @@ import "../core/search.mjs" as Search
  * the field, at the bottom of the list; ↑ walks up it.
  *
  * - Apps mode: installed apps matched loosely ("vsc" finds Visual Studio
- *   Code), favorites first; with nothing typed, the most used apps. An
+ *   Code), favorites first; with nothing typed, the most used apps and then
+ *   every app by name. The list shows `maxRows` at a time and scrolls (wheel,
+ *   ↑/↓) with an overlay scroll bar. An
  *   arithmetic expression shows its result first; Return copies it.
  * - Clipboard mode: the clipboard history (cliphist), newest first, filtered
  *   as you type; Return copies the entry back.
  *
  * ↑/↓ move up/down the list, Return opens or copies, Tab switches mode, Esc or a click
- * outside closes. It appears with a short zoom-and-fade on the smooth spring.
+ * outside closes. It materializes, as Liquid Glass does: the glass comes in
+ * clear and lensing with a faint bloom, gains its veil as it settles (scale
+ * 0.92 → 1 on the smooth spring) and the content shows once the glass is
+ * mostly there; closing is quicker (`dismiss`), content first, then the glass
+ * clears and fades.
  */
 PanelWindow {
     id: root
@@ -64,6 +70,12 @@ PanelWindow {
         to: root.wanted ? 1 : 0
         preset: root.wanted ? Motion.smooth : Motion.dismiss
     }
+    /** How much of the material's veil is there (the glass comes in clear). */
+    readonly property real presence: 0.3 + 0.7 * openness.value
+    /** A faint bloom halfway through the materialization, gone at rest. */
+    readonly property real bloom: 2 * openness.value * (1 - openness.value)
+    /** The content: in once the glass is mostly formed, out first on close. */
+    readonly property real focus: Math.max(0, (openness.value - 0.35) / 0.65)
 
     visible: wanted || !openness.settled
     anchors { top: true; bottom: true; left: true; right: true }
@@ -89,7 +101,7 @@ PanelWindow {
         const list = [];
         if (calculation !== null)
             list.push({ kind: "calc", value: calculation, title: formatNumber(calculation), subtitle: I18n.tr("launcher.calculator") });
-        for (const e of Apps.search(field.text, maxRows))
+        for (const e of Apps.search(field.text, Infinity))
             list.push({ kind: "app", entry: e, title: e.name, subtitle: e.genericName || e.comment || "" });
         return list;
     }
@@ -165,7 +177,7 @@ PanelWindow {
         width: root.panelWidth
         height: bar.height + (root.showResults ? Tokens.space.m + results.height : 0)
         opacity: openness.value
-        scale: 0.96 + 0.04 * openness.value
+        scale: 0.92 + 0.08 * openness.value
         transformOrigin: Item.Bottom
 
         // Clicks on the launcher itself don't close it.
@@ -183,6 +195,8 @@ PanelWindow {
                 backdrop: launcherBackdrop
                 material: Tokens.glass.regular
                 radius: height / 2
+                presence: root.presence
+                bloom: root.bloom
                 track: [card.scale]
             }
 
@@ -192,6 +206,7 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 glyph: Glyphs.magnifier
                 size: 20
+                opacity: root.focus
                 color: Tokens.secondaryLabel
             }
 
@@ -202,6 +217,7 @@ PanelWindow {
                 anchors.right: modes.left
                 anchors.rightMargin: Tokens.space.m
                 anchors.verticalCenter: parent.verticalCenter
+                opacity: root.focus
                 color: Tokens.label
                 selectionColor: Tokens.accent
                 selectedTextColor: "white"
@@ -240,6 +256,7 @@ PanelWindow {
                 id: modes
                 anchors.right: parent.right
                 anchors.rightMargin: Tokens.space.m + 2
+                opacity: root.focus
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: Tokens.space.s
 
@@ -295,12 +312,15 @@ PanelWindow {
                 backdrop: launcherBackdrop
                 material: Tokens.glass.regular
                 radius: 22
+                presence: root.presence
+                bloom: root.bloom
                 track: [card.scale, results.height]
             }
 
             Item {
                 anchors.fill: parent
                 anchors.margins: Tokens.space.m
+                opacity: root.focus
                 clip: true
 
                 Text {
@@ -333,12 +353,18 @@ PanelWindow {
                     width: parent.width
                     height: parent.height - header.height
                     model: root.rows
+                    // Rows scrolled past the top stay under the section title.
+                    clip: true
                     // Best match at the bottom, next to the field.
                     verticalLayoutDirection: ListView.BottomToTop
                     currentIndex: root.selected
                     highlightFollowsCurrentItem: true
                     highlightMoveDuration: Motion.reduced ? 0 : Motion.hover
                     boundsBehavior: Flickable.StopAtBounds
+                    // ↑ into the hidden rows: keep the chosen one in view.
+                    highlightRangeMode: ListView.ApplyRange
+                    preferredHighlightBegin: 0
+                    preferredHighlightEnd: height
                     highlight: Rectangle {
                         radius: Tokens.radius.menuItem + 2
                         color: Tokens.accent
@@ -416,6 +442,7 @@ PanelWindow {
                         }
                     }
                 }
+                ScrollIndicator { flickable: listView; outside: false }
             }
         }
     }

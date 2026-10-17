@@ -14,8 +14,10 @@ import "../services"
  * window — a live thumbnail, the app's icon on its lower edge, the title —
  * most recently used first, the previous window chosen on open.
  *
- * The selection is a lens of glass that slides from card to card on a
- * snappy spring and stretches with its speed, like a drop of liquid moving.
+ * The selection is a lens of glass that moves from card to card like a drop
+ * (as the switch's knob does): the edge facing the travel sets off on the
+ * snappy spring and the other follows on the smooth one, so it stretches on
+ * its way and gathers back as it lands, lifted a little while it travels.
  *
  * From niri's switcher: previews are large and keep each window's shape
  * (all scaled down together when they don't fit), long titles fade out
@@ -179,31 +181,50 @@ PanelWindow {
             track: [panel.scale]
         }
 
-        // The selection lens: slides on a spring and stretches with its speed.
+        // The selection lens: two edges on two springs, the leading one snappy.
+        readonly property real lensLeft: root.pad + (root.offsets[root.selected] ?? 0) - 6
+        readonly property real lensRight: lensLeft + root.cardWidth(root.selected) + 12
+        property real lastLeft: 0
+        property bool forward: true
+        onLensLeftChanged: {
+            forward = lensLeft >= lastLeft;
+            lastLeft = lensLeft;
+        }
         SpringValue {
-            id: lensX
-            to: root.pad + (root.offsets[root.selected] ?? 0)
-            preset: Motion.snappy
+            id: leftEdge
+            to: panel.lensLeft
+            preset: panel.forward ? Motion.smooth : Motion.snappy
+            Component.onCompleted: snap(to)
+        }
+        SpringValue {
+            id: rightEdge
+            to: panel.lensRight
+            preset: panel.forward ? Motion.snappy : Motion.smooth
             Component.onCompleted: snap(to)
         }
         Connections {
             target: root
             function onShownChanged() {
-                if (root.shown)
-                    lensX.snap(root.pad + (root.offsets[root.selected] ?? 0));
+                if (root.shown) {
+                    leftEdge.snap(panel.lensLeft);
+                    rightEdge.snap(panel.lensRight);
+                }
             }
         }
         Glass {
             id: lens
-            readonly property real stretch: Math.min(40, Math.abs(lensX.velocity) * 0.025)
-            x: lensX.value - 6 - stretch / 2
+            x: leftEdge.value
             y: root.pad - 6
-            width: root.cardWidth(root.selected) + 12 + stretch
-            height: root.cardHeight + 12 - stretch * 0.3
+            width: Math.max(1, rightEdge.value - leftEdge.value)
+            height: root.cardHeight + 12
             backdrop: switcherBackdrop
             material: Tokens.glass.lens
             radius: 20
             shadow: false
+            // Lifted while more than half a card from its place; lands with a squash.
+            held: Math.abs(panel.lensLeft - leftEdge.value) > 0.45 * (panel.lensRight - panel.lensLeft)
+            pressScale: 1.04
+            releasePreset: Motion.land
             track: [x, width, height, panel.scale]
         }
 

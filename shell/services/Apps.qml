@@ -61,8 +61,9 @@ Singleton {
             alt: alts[i],
             uses: counts[e.id] || 0
         }));
+        // Nothing typed: the most used first, then every app by name.
         if (!query.trim().length)
-            return apps.filter(a => a.uses > 0).sort((a, b) => b.uses - a.uses).slice(0, limit).map(a => a.entry);
+            return apps.sort((a, b) => (b.uses - a.uses) || a.name.localeCompare(b.name)).slice(0, limit).map(a => a.entry);
         return Search.rank(apps, query, limit).map(a => a.entry);
     }
 
