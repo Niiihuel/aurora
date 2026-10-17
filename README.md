@@ -1,4 +1,10 @@
-# aurora
+<p align="center">
+  <img src="assets/aurora.png" alt="aurora" width="120">
+</p>
+
+<h1 align="center">aurora</h1>
+
+<p align="center">A macOS for Linux, built from scratch: Hyprland, a Quickshell shell and my own liquid glass.</p>
 
 My own NixOS desktop: Hyprland + a Quickshell (QML) shell designed as if Apple had made a macOS for Linux — a full-width menu bar, menus that grow out of their extras, Control Center, and my own liquid glass material. Everything here is written from scratch; nothing is copied from other rices.
 
@@ -31,5 +37,6 @@ The design rules, tokens and QML patterns live in the project skill: `.claude/sk
 - `plugins/rims/` — the Hyprland plugin that draws the liquid glass window rims.
 - `login/` — the SDDM login screen (`nix/login.nix` packages it).
 - `nix/` — packages and the Home Manager module; `scripts/` — session, settings and build helpers.
+- `assets/` — the aurora logo (the system menu's mark is traced from it).
 
 `~/dotfiles` (the NixOS system) takes this repo as a flake input: it builds the rims plugin and the login screen from what's committed here, and enables `aurora.hyprland` with live links to `hypr/`.
