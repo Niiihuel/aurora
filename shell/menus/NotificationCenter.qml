@@ -5,14 +5,16 @@ import "../components"
 import "../services"
 
 /**
- * Notification Center, after macOS Tahoe: opened from the clock, a column of
- * separate liquid glass pieces with no panel behind them — the notifications
- * grouped by app (newest group first) with "Clear All", and a month
- * calendar below (MonthCalendar) that pages between months. The list
- * scrolls when it outgrows the screen.
+  * Notification Center, after macOS Tahoe: opened from the clock, a panel of
+ * glass holding the notifications grouped by app (newest group first) as
+ * lighter platters of glass, "Clear All", and a month calendar below
+ * (MonthCalendar) that pages between months. The list scrolls when it
+ * outgrows the screen, with an overlay scroll bar.
  *
- * It's a bare panel for the menu layer (its glass carries the pop out of the
- * clock and hands over to the cards), like Control Center.
+ * The menu layer's glass is the panel (`bare` stays false), like Control
+ * Center. Clear All cascades: each card slides off to the right and fades,
+ * then its row collapses so the ones below move up and the panel shrinks
+ * with them; only then are they dismissed.
  */
 Item {
     id: root
@@ -20,13 +22,14 @@ Item {
     property Item backdrop: null
     property bool chrome: false
     readonly property bool isMenuPanel: true
-    readonly property bool bare: true
-    readonly property real panelRadius: Tokens.radius.banner
+        readonly property bool bare: false
+    readonly property real pad: Tokens.notificationCenter.padding
+    readonly property real panelRadius: Tokens.radius.tile + pad
     property Item highlighted: null
     property var track: []
 
     readonly property real gap: Tokens.space.m
-    readonly property real maxListHeight: (Quickshell.screens[0]?.height ?? 900) - Tokens.bar.height - calendar.height - 4 * gap - 60
+        readonly property real maxListHeight: (Quickshell.screens[0]?.height ?? 900) - Tokens.bar.height - calendar.height - 4 * gap - 60 - 2 * pad
 
     /**
      * [{ app, items, start }] newest group first, keeping each app's
@@ -57,15 +60,17 @@ Item {
      * other, fading, and only then are they dismissed.
      */
     property bool clearing: false
-    readonly property int cascadeStep: 35
+        readonly property int cascadeStep: 35
     readonly property int slideOut: 260
+        /** A cleared card's row folds up over this, from halfway through its slide, moving the rest up behind it. */
+    readonly property int collapse: 180
     function clearAll() {
         if (Motion.reduced) {
             Notifications.clearAll();
             return;
         }
         clearing = true;
-        clearDone.interval = Notifications.all.length * cascadeStep + slideOut + 40;
+                        clearDone.interval = Notifications.all.length * cascadeStep + slideOut / 2 + collapse + 40;
         clearDone.restart();
     }
     Timer {
@@ -85,15 +90,22 @@ Item {
         onTriggered: root.now = Date.now()
     }
 
-    implicitWidth: 344
+        implicitWidth: Tokens.notificationCenter.width + 2 * pad
     readonly property real headerSpace: header.visible ? header.height + gap : 0
-    implicitHeight: headerSpace + Math.min(list.contentHeight, maxListHeight) + gap + calendar.height
+    implicitHeight: 2 * pad + headerSpace + Math.min(list.contentHeight, maxListHeight) + gap + calendar.height
 
     // The menu layer's keyboard: nothing to walk here yet.
     function move(step) {}
     function activate() {}
 
-    // --- Header: Clear All -------------------------------------------------------
+    Item {
+        id: inner
+        x: root.pad
+        y: root.pad
+        width: parent.width - 2 * root.pad
+        height: parent.height - 2 * root.pad
+
+    // --- Header: Clear All ---------------------------------------------------
 
     Item {
         id: header
@@ -111,7 +123,7 @@ Item {
             Glass {
                 anchors.fill: parent
                 backdrop: root.backdrop
-                material: Tokens.glass.regularSmall
+                                material: Tokens.glass.module
                 radius: height / 2
                 shadow: false
                 held: clearTouch.pressed
@@ -150,20 +162,11 @@ Item {
             width: parent.width
             spacing: root.gap
 
-            // Empty: one quiet piece of glass saying so.
+                        // Empty: a quiet line on the panel saying so.
             Item {
                 visible: Notifications.all.length === 0
                 width: parent.width
                 height: 56
-
-                Glass {
-                    anchors.fill: parent
-                    backdrop: root.backdrop
-                    material: Tokens.glass.regular
-                    radius: Tokens.radius.banner
-                    shadow: false
-                    track: [root.track]
-                }
                 Text {
                     anchors.centerIn: parent
                     text: I18n.tr("notifications.empty")
@@ -181,11 +184,17 @@ Item {
                     width: parent.width
                     spacing: root.gap
 
-                    // The app's name over its notifications.
+                                        // The app's name over its notifications; it folds up after its last card.
                     Item {
+                        id: groupTitle
                         width: parent.width
                         height: 18
                         visible: group.modelData.app.length > 0
+                        SequentialAnimation {
+                            running: root.clearing
+                                                        PauseAnimation { duration: (group.modelData.start + group.modelData.items.length - 1) * root.cascadeStep + root.slideOut / 2 }
+                            NumberAnimation { target: groupTitle; property: "height"; to: 0; duration: root.collapse; easing.type: Easing.InOutCubic }
+                        }
 
                         Text {
                             x: Tokens.space.xs
@@ -207,16 +216,23 @@ Item {
                             required property var modelData
                             required property int index
                             notification: modelData
-                            backdrop: root.backdrop
+                                                        backdrop: root.backdrop
+                            material: Tokens.glass.module
+                            radius: Tokens.radius.tile
                             now: root.now
                             track: [root.track, group.y, x, y, list.contentY]
 
                             SequentialAnimation {
                                 running: root.clearing
                                 PauseAnimation { duration: (group.modelData.start + card.index) * root.cascadeStep }
-                                ParallelAnimation {
+                                                                ParallelAnimation {
                                     NumberAnimation { target: card; property: "x"; to: card.width + 24; duration: root.slideOut; easing.type: Easing.InCubic }
                                     NumberAnimation { target: card; property: "opacity"; to: 0; duration: root.slideOut; easing.type: Easing.InQuad }
+                                    // Halfway out, its row folds behind it so the rest move up and the panel shrinks with them.
+                                    SequentialAnimation {
+                                        PauseAnimation { duration: root.slideOut / 2 }
+                                        NumberAnimation { target: card; property: "height"; to: 0; duration: root.collapse; easing.type: Easing.InOutCubic }
+                                    }
                                 }
                             }
                         }
@@ -226,15 +242,20 @@ Item {
         }
     }
 
-    // --- Calendar ------------------------------------------------------------------
+    ScrollIndicator { flickable: list; outside: false }
+
+    // --- Calendar --------------------------------------------------------------
 
     MonthCalendar {
         id: calendar
         y: list.y + list.height + root.gap
         width: parent.width
         height: implicitHeight
-        backdrop: root.backdrop
+                backdrop: root.backdrop
+        material: Tokens.glass.module
+        radius: Tokens.radius.tile
         track: root.track
         now: root.now
+    }
     }
 }

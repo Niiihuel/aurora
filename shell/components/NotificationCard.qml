@@ -20,6 +20,9 @@ Item {
     required property var notification
     property Item backdrop: null
     property var track: []
+    /** The glass: `regular` as a banner; the Notification Center uses a lighter platter on its panel. */
+    property var material: Tokens.glass.regular
+    property real radius: Tokens.radius.banner
     /** Current time, for the age; the owner ticks it. */
     property real now: Date.now()
 
@@ -39,8 +42,8 @@ Item {
     Glass {
         anchors.fill: parent
         backdrop: root.backdrop
-        material: Tokens.glass.regular
-        radius: Tokens.radius.banner
+        material: root.material
+        radius: root.radius
         held: tap.pressed
         track: [root.track, root.width, root.height]
     }

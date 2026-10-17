@@ -18,6 +18,9 @@ Item {
     id: root
 
     property Item backdrop: null
+    /** The glass: its own piece by default; a lighter platter inside the Notification Center's panel. */
+    property var material: Tokens.glass.regular
+    property real radius: Tokens.radius.banner
     property var track: []
     property real now: Date.now()
 
@@ -53,8 +56,8 @@ Item {
     Glass {
         anchors.fill: parent
         backdrop: root.backdrop
-        material: Tokens.glass.regular
-        radius: Tokens.radius.banner
+        material: root.material
+        radius: root.radius
         shadow: false
         track: [root.track, root.y]
     }
