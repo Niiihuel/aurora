@@ -94,4 +94,5 @@ developer.apple.com pages are a JavaScript app; fetch the data instead:
 - HIG page JSON: `https://developer.apple.com/tutorials/data/design/human-interface-guidelines/<page>.json` (e.g. `the-menu-bar`, `materials`, `motion`, `menus`, `popovers`, `toggles`, `sliders`).
 - Other docs: `https://developer.apple.com/tutorials/data/documentation/<path>.json`.
 - Walk `primaryContentSections` for text; media URLs are in `references[*].variants[].url` — prefix videos with `https://developer.apple.com/tutorials`.
+- HIG images (e.g. `materials-ios-liquid-glass-over-dark@2x.png`, Apple's own renders of regular/clear glass) are served at `https://developer.apple.com/tutorials/images/com.apple.HIG/<name>` — the other hosts 404.
 - ffmpeg isn't installed system-wide: `nix shell nixpkgs#ffmpeg -c ffmpeg -i in.mp4 -vf "fps=2,scale=540:-1,tile=2x8" -frames:v 1 sheet.png` makes a contact sheet to study an animation.

@@ -1,9 +1,9 @@
 # Home Manager module for aurora.
 #
 #   aurora.shell.enable = true;
-#   aurora.shell.devPath = "/home/nihuel/projects/personal/aurora/shell";  # optional
+#   aurora.shell.devPath = "/home/you/src/aurora/shell";  # optional
 #   aurora.hyprland.enable = true;
-#   aurora.hyprland.devPath = "/home/nihuel/projects/personal/aurora/hypr"; # optional
+#   aurora.hyprland.devPath = "/home/you/src/aurora/hypr";   # optional
 #
 # With a devPath, the files are out-of-store links to the repo, so every save
 # is live (the shell hot-reloads; Hyprland reloads its config; compile shaders
