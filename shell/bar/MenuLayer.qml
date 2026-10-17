@@ -69,9 +69,10 @@ PanelWindow {
         case "bluetooth": return bluetoothMenu;
         case "battery": return batteryMenu;
         case "system": return systemMenu;
+        case "app": return appMenu;
         case "controlCenter": return controlCenterMenu;
         case "notifications": return notificationCenter;
-        default: return null;
+        default: return id.startsWith("tray:") ? trayMenu : null;
         }
     }
 
@@ -211,6 +212,16 @@ PanelWindow {
     Component {
         id: controlCenterMenu
         ControlCenter { chrome: false; backdrop: menuBackdrop }
+    }
+
+    Component {
+        id: appMenu
+        AppMenu { chrome: false; backdrop: menuBackdrop }
+    }
+
+    Component {
+        id: trayMenu
+        TrayMenu { chrome: false; backdrop: menuBackdrop; itemId: menuLayer.shownId.slice(5) }
     }
 
     Component {

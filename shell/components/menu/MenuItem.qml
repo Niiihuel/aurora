@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Widgets
 import "../../core"
 import ".."
 
@@ -20,6 +21,8 @@ Item {
     property string text: ""
     property string detail: ""
     property var glyph: null
+    /** An image icon (another app's menu entries), when there is no glyph. */
+    property string image: ""
     property bool checked: false
     property bool reserveMark: false
     property bool hasSubmenu: false
@@ -109,6 +112,13 @@ Item {
             size: 15
             color: root.ink
             dimColor: Qt.alpha(root.ink, 0.35)
+        }
+
+        IconImage {
+            visible: root.image.length > 0 && !root.glyph && !root.busy
+            anchors.verticalCenter: parent.verticalCenter
+            source: root.image
+            implicitSize: 15
         }
 
         Text {

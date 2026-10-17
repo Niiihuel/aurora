@@ -19,12 +19,18 @@ Item {
     /** Id of the menu this slot opens (see bar/MenuLayer); empty for none. */
     property string menu: ""
     property string screenName: ""
+    /**
+     * Another app's extra: a click runs `clicked` (the app's own action) and
+     * the menu opens on a right click instead.
+     */
+    property bool menuOnSecondary: false
     property real padding: Tokens.bar.itemPadding
 
     readonly property bool open: menu.length > 0 && Menus.active === menu && Menus.screen === screenName
     readonly property bool active: open || touch.pressed
 
     signal clicked()
+    signal middleClicked()
 
     implicitWidth: row.implicitWidth + 2 * padding
     implicitHeight: Tokens.bar.height
@@ -59,10 +65,16 @@ Item {
     MouseArea {
         id: touch
         anchors.fill: parent
-        onClicked: {
-            if (root.menu.length)
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        onClicked: mouse => {
+            // A right click opens any slot's menu, as on macOS.
+            const opens = mouse.button === Qt.RightButton || (mouse.button === Qt.LeftButton && !root.menuOnSecondary);
+            if (root.menu.length && opens)
                 Menus.toggle(root.menu, root.screenName, root.anchor(), root.width);
-            root.clicked();
+            if (mouse.button === Qt.LeftButton)
+                root.clicked();
+            else if (mouse.button === Qt.MiddleButton)
+                root.middleClicked();
         }
     }
 }

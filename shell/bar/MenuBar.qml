@@ -1,7 +1,10 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Services.SystemTray
+import Quickshell.Widgets
 import "../core"
 import "../components"
 import "../services"
@@ -9,8 +12,10 @@ import "../services"
 /**
  * The macOS-style menu bar for one screen: 24 pt, full width, on subtle glass.
  *
- * Leading: the system menu (aurora's mark) and the frontmost app's name in
- * bold. Trailing: a stop button while recording the screen, sound, Bluetooth, network and battery extras, Control
+ * Leading: the system menu (aurora's mark), the frontmost app's name in
+ * bold (its menu: windows, desktops, quit) and the workspaces as page dots (click to go, scroll to step). Trailing: a stop button while recording the screen, other apps' extras
+ * (system tray: click for the app's action, right click for its menu), sound,
+ * Bluetooth, network and battery extras, Control
  * Center, and the clock. Each slot is a BarItem; its menu arrives in section 3
  * through `clicked`.
  *
@@ -111,6 +116,8 @@ PanelWindow {
             }
 
             BarItem {
+                menu: Hyprland.activeToplevel ? "app" : ""
+                screenName: bar.modelData.name
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: bar.appName
@@ -118,6 +125,57 @@ PanelWindow {
                     font.family: Tokens.family
                     font.pixelSize: Tokens.type.body.size
                     font.weight: Font.Bold
+                }
+            }
+
+            // This screen's workspaces as page dots; the current one is a pill.
+            Item {
+                id: spaces
+                height: parent.height
+                implicitWidth: dots.implicitWidth + 2 * Tokens.bar.itemPadding
+                property real wheel: 0
+
+                Row {
+                    id: dots
+                    anchors.centerIn: parent
+                    height: parent.height
+                    Repeater {
+                        model: bar.workspaces
+                        delegate: Item {
+                            id: dot
+                            required property HyprlandWorkspace modelData
+                            height: dots.height
+                            width: pill.width + Tokens.space.s
+                            SpringValue {
+                                id: grow
+                                to: dot.modelData.active ? 1 : 0
+                                preset: Motion.snappy
+                            }
+                            Rectangle {
+                                id: pill
+                                anchors.centerIn: parent
+                                width: 6 + 10 * grow.value
+                                height: 6
+                                radius: 3
+                                color: dot.modelData.active ? Tokens.label : Tokens.secondaryLabel
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: Hyprland.dispatch(`hl.dsp.focus({ workspace = ${dot.modelData.id} })`)
+                            }
+                        }
+                    }
+                }
+
+                // One step per notch; a touchpad's small deltas add up to one.
+                WheelHandler {
+                    onWheel: event => {
+                        spaces.wheel += event.angleDelta.y;
+                        if (Math.abs(spaces.wheel) < 120)
+                            return;
+                        Hyprland.dispatch(`hl.dsp.focus({ workspace = "${spaces.wheel > 0 ? "m-1" : "m+1"}" })`);
+                        spaces.wheel = 0;
+                    }
                 }
             }
         }
@@ -140,6 +198,38 @@ PanelWindow {
                     font.family: Tokens.family
                     font.pixelSize: Tokens.type.body.size
                     font.features: ({ "tnum": 1 })
+                }
+            }
+
+            // Other apps' extras sit left of the system ones, as on macOS.
+            Repeater {
+                model: SystemTray.items
+                delegate: BarItem {
+                    required property SystemTrayItem modelData
+                    menu: modelData.hasMenu ? "tray:" + modelData.id : ""
+                    menuOnSecondary: !modelData.onlyMenu
+                    screenName: bar.modelData.name
+                    onClicked: if (!modelData.onlyMenu) modelData.activate()
+                    onMiddleClicked: modelData.secondaryActivate()
+                    // A template, like macOS extras: the app's shape in the bar's ink.
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        implicitWidth: Tokens.bar.icon
+                        implicitHeight: Tokens.bar.icon
+                        color: Tokens.label
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            maskEnabled: true
+                            maskSource: trayIcon
+                        }
+                        IconImage {
+                            id: trayIcon
+                            anchors.fill: parent
+                            source: modelData.icon
+                            visible: false
+                            layer.enabled: true
+                        }
+                    }
                 }
             }
 
@@ -263,6 +353,11 @@ PanelWindow {
         const entry = DesktopEntries.byId(id) ?? DesktopEntries.heuristicLookup(id);
         return entry && entry.name ? entry.name : id;
     }
+
+    /** Workspaces on this screen (Hyprland keeps only those with windows, plus the current one). */
+    readonly property var workspaces: Hyprland.workspaces.values
+        .filter(w => w.id > 0 && w.monitor === monitor)
+        .sort((a, b) => a.id - b.id)
 
     SystemClock {
         id: clock
