@@ -13,3 +13,4 @@ singleton Packages 1.0 Packages.qml
 singleton Keybinds 1.0 Keybinds.qml
 singleton Capture 1.0 Capture.qml
 singleton Annotate 1.0 Annotate.qml
+singleton AppColors 1.0 AppColors.qml

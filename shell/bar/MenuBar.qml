@@ -44,7 +44,9 @@ PanelWindow {
 
     anchors { top: true; left: true; right: true }
     implicitHeight: barHeight
-    exclusiveZone: fullscreen ? 0 : barHeight
+    // Constant: full-screen windows already cover it, and toggling it makes
+    // Hyprland re-lay out every desktop on the monitor mid-switch.
+    exclusiveZone: barHeight
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "aurora-bar"

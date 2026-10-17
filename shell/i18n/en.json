@@ -349,5 +349,17 @@
   "annotate.open": "Open",
   "annotate.linkCopied": "Link copied",
   "annotate.uploadFailed": "Couldn't upload the screenshot",
-  "annotate.exportFailed": "Couldn't export the screenshot"
+  "annotate.exportFailed": "Couldn't export the screenshot",
+  "app.newWindow": "New Window",
+  "app.fullScreen": "Full Screen",
+  "app.float": "Floating Window",
+  "app.moveTo": "Move to Desktop",
+  "app.minimize": "Minimize",
+  "app.closeWindow": "Close Window",
+  "app.quit": "Quit {app}",
+  "app.desktop": "Desktop {n}",
+  "app.newDesktop": "New Desktop",
+  "login.sleep": "Sleep",
+  "login.restart": "Restart",
+  "login.shutDown": "Shut Down"
 }

@@ -19,7 +19,7 @@ import Quickshell.Io
  *   modules) — can only be removed there.
  *
  * Root work goes through the dotfiles' oneshot units with a polkit rule
- * (modules/nixos/ricelin-system.nix): `systemctl start ricelin-rebuild`
+ * (modules/nixos/rebuild.nix): `systemctl start aurora-rebuild`
  * blocks until the switch ends and returns its status; the desktop's polkit
  * agent asks for the password. Progress is read from its journal.
  */
@@ -79,7 +79,7 @@ Singleton {
     function apply() {
         if (busy)
             return;
-        run("building", "systemctl start ricelin-rebuild.service");
+        run("building", "systemctl start aurora-rebuild.service");
     }
 
     /**
@@ -106,7 +106,7 @@ Singleton {
     function applyUpdates() {
         if (busy)
             return;
-        run("building", "cp -- \"$1/flake.lock\" \"$HOME/dotfiles/flake.lock\" && systemctl start ricelin-rebuild.service", [updateDir]);
+        run("building", "cp -- \"$1/flake.lock\" \"$HOME/dotfiles/flake.lock\" && systemctl start aurora-rebuild.service", [updateDir]);
     }
 
     function run(first, script, args) {
@@ -163,7 +163,7 @@ Singleton {
     // The rebuild's live log (the unit runs as root; its journal is readable by wheel).
     Process {
         id: journal
-        command: ["journalctl", "-fu", "ricelin-rebuild.service", "-n", "0", "-o", "cat"]
+        command: ["journalctl", "-fu", "aurora-rebuild.service", "-n", "0", "-o", "cat"]
         stdout: SplitParser {
             onRead: data => {
                 if (data.trim().length)

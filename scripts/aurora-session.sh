@@ -10,6 +10,11 @@ shell_dir="${1:-$(cd "$(dirname "$0")/../shell" && pwd)}"
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/aurora-session.lock"
 flock -n 9 || exit 0
 
+# The liquid glass window rims (plugins/rims). The system builds them against
+# the Hyprland it runs and says where (AURORA_RIMS_SO); one built for another
+# Hyprland refuses to load.
+[ -f "${AURORA_RIMS_SO:-}" ] && hyprctl plugin load "$AURORA_RIMS_SO" >/dev/null 2>&1
+
 # The shell, and the lock screen as its own process (so the shell's hot
 # reloads never touch a locked session; see shell/lock.qml).
 while true; do

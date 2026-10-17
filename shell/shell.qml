@@ -56,6 +56,13 @@ ShellRoot {
     WifiPasswordDialog {}
     ConfirmDialog {}
 
+    // hypridle's config and the other apps' colors come from aurora's
+    // settings; write them at login.
+    Component.onCompleted: {
+        Idle.apply();
+        AppColors.apply();
+    }
+
     // `qs ipc call aurora menu sound` opens a menu bar menu on the focused
     // screen (toggles if it's open); `closeMenu` closes any.
     IpcHandler {
@@ -68,7 +75,7 @@ ShellRoot {
         function controlCenter(page: string): void { Menus.page = page; Menus.request("controlCenter"); }
         function activeMenu(): string { return Menus.active; }
         function accent(): string { return Tokens.accent.toString(); }
-        // wallpaper.sh calls this after changing the wallpaper.
+        // Someone else changed the wallpaper (`awww img …`): read it again.
         function wallpaperChanged(): void { Wallpaper.refresh(); }
         // `capture`: the capture toolbar (or stop a recording), like Super+D.
         function capture(): void { Capture.toggle(); }

@@ -10,13 +10,20 @@
       url = "github:quickshell-mirror/quickshell/v0.3.2";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # The Hyprland the system runs (~/dotfiles pins the same commit, without
+    # follows, so both resolve to the same derivation). Plugins must be built
+    # against it exactly or Hyprland refuses to load them.
+    hyprland.url = "github:hyprwm/Hyprland/254d6bae775258b554e1d3a4a853f3bc244190d9";
   };
 
-  outputs = { self, nixpkgs, quickshell, ... }:
+  outputs = { self, nixpkgs, quickshell, hyprland, ... }:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       qs = quickshell.packages.${system}.default;
+      # Hyprland's own package set: its mkHyprlandPlugin carries that build's headers and ABI hash.
+      hpkgs = hyprland.inputs.nixpkgs.legacyPackages.${system}.extend hyprland.overlays.hyprland-packages;
     in
     {
       packages.${system} = {
@@ -24,6 +31,10 @@
         # qsb of the same Qt that Quickshell links.
         aurora-shell = pkgs.callPackage ./nix/shell.nix { };
         default = self.packages.${system}.aurora-shell;
+        # The login screen (SDDM theme); `.override { language = "es"; }`.
+        aurora-login = pkgs.callPackage ./nix/login.nix { };
+        # Liquid glass window rims (plugins/rims).
+        aurora-rims = hpkgs.callPackage ./plugins/rims { inherit (hpkgs.hyprlandPlugins) mkHyprlandPlugin; };
       };
 
       # Home Manager module: puts the shell at ~/.config/quickshell/aurora,

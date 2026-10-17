@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import "../../core"
 import "../../components/menu"
 import ".."
@@ -14,7 +15,10 @@ Column {
             title: I18n.tr("settings.accessibility.reduceMotion")
             MenuSwitch {
                 checked: Settings.reduceMotion
-                onToggled: on => Settings.reduceMotion = on
+                onToggled: on => {
+                    Settings.reduceMotion = on;
+                    windowMotion.restart();
+                }
             }
         }
         SettingsRow {
@@ -24,5 +28,13 @@ Column {
                 onToggled: on => Settings.reduceTransparency = on
             }
         }
+    }
+
+    // Windows and desktops move by Hyprland's config (hypr/aurora/motion.lua),
+    // which reads this setting: reload it once the setting is saved.
+    Timer {
+        id: windowMotion
+        interval: 400
+        onTriggered: Quickshell.execDetached(["hyprctl", "reload"])
     }
 }

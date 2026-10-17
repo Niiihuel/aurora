@@ -58,6 +58,7 @@ PanelWindow {
     }
 
     GlobalShortcut { appid: "aurora"; name: "wallpaperPicker"; description: "Choose a wallpaper"; onPressed: root.toggle() }
+    GlobalShortcut { appid: "aurora"; name: "wallpaperNext"; description: "Next wallpaper, at random"; onPressed: Wallpaper.next() }
 
     SpringValue {
         id: openness

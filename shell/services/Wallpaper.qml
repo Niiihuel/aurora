@@ -16,8 +16,9 @@ import "../core"
  * on every output with a growing-circle transition that starts at `fx,fy`
  * (fractions of the screen, from its top-left) — the picker passes the
  * chosen thumbnail's centre, so the new wallpaper spreads out of it like a
- * drop — then runs the desktop's own follow-ups (lock and login screen
- * copies, terminal colors) through wallpaper.sh's `post` step.
+ * drop — and publishes a copy for the login screen, which can't read $HOME
+ * (/var/lib/aurora/login, writable by the user and readable by the greeter).
+ * `next` (Super+B) applies another one at random.
  */
 Singleton {
     id: root
@@ -39,9 +40,27 @@ Singleton {
             map[s.name] = path;
         byOutput = map;
         Quickshell.execDetached(["sh", "-c",
-            "awww img \"$1\" --transition-type grow --transition-pos \"$2,$3\" --transition-duration 1.1 --transition-fps 120 --transition-bezier .32,.72,0,1; " +
-            "s=\"$HOME/.config/hypr/scripts/wallpaper.sh\"; [ -x \"$s\" ] && \"$s\" post \"$1\" || true",
+            "awww img \"$1\" --transition-type grow --transition-pos \"$2,$3\" --transition-duration 1.1 --transition-fps 120 --transition-bezier .32,.72,0,1",
             "_", path, Math.max(0, Math.min(1, fx)).toFixed(3), Math.max(0, Math.min(1, 1 - fy)).toFixed(3)]);
+        publish(path);
+    }
+
+    /** Another wallpaper from ~/wallpapers, at random, growing from the middle. */
+    function next() {
+        const current = pathFor(Quickshell.screens.length ? Quickshell.screens[0].name : "");
+        const others = files.filter(f => f !== current);
+        if (others.length)
+            apply(others[Math.floor(Math.random() * others.length)], 0.5, 0.5);
+    }
+
+    /** The login screen's copy: at most 4K, plain JPEG, swapped in whole. */
+    function publish(path) {
+        if (path.length)
+            Quickshell.execDetached(["sh", "-c",
+                "d=/var/lib/aurora/login; [ -w \"$d\" ] || exit 0; " +
+                "magick \"$1\" -auto-orient -resize '3840x2160>' -strip -quality 90 \"$d/wallpaper.jpg.tmp\" && " +
+                "chmod 644 \"$d/wallpaper.jpg.tmp\" && mv -f \"$d/wallpaper.jpg.tmp\" \"$d/wallpaper.jpg\"",
+                "_", path]);
     }
 
     Process {
@@ -86,14 +105,20 @@ Singleton {
                         map[m[1]] = m[2].trim();
                 }
                 root.byOutput = map;
+                // The first answer after login: make sure the login screen has it.
+                if (!root.published && Quickshell.screens.length) {
+                    root.published = true;
+                    root.publish(root.pathFor(Quickshell.screens[0].name));
+                }
             }
         }
     }
 
     property string lastQuery: ""
+    property bool published: false
 
-    // A safety net only: wallpaper.sh tells the shell when it changes the
-    // wallpaper (`qs ipc call aurora wallpaperChanged`), and so does apply().
+    // A safety net only: apply() already knows, and anything else that changes
+    // the wallpaper can say so (`qs ipc call aurora wallpaperChanged`).
     Timer {
         interval: 120000
         running: !Settings.wallpaper.length

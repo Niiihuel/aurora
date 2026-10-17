@@ -7,7 +7,7 @@ import "../core/keys.mjs" as Chord
 
 /**
  * Keyboard shortcuts for Settings' Keyboard page. Hyprland's config
- * (~/dotfiles/configs/hypr/modules/binds.lua) holds every action with an id
+ * (hypr/aurora/binds.lua in this repo) holds every action with an id
  * and its default keys; the user's changes go in ~/.config/hypr/keybinds.conf,
  * which this writes — data only, one per line, tab-separated:
  *

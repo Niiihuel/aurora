@@ -349,5 +349,17 @@
   "annotate.open": "Abrir",
   "annotate.linkCopied": "Enlace copiado",
   "annotate.uploadFailed": "No se pudo subir la captura",
-  "annotate.exportFailed": "No se pudo guardar la captura"
+  "annotate.exportFailed": "No se pudo guardar la captura",
+  "app.newWindow": "Nueva ventana",
+  "app.fullScreen": "Pantalla completa",
+  "app.float": "Ventana flotante",
+  "app.moveTo": "Mover a otro escritorio",
+  "app.minimize": "Minimizar",
+  "app.closeWindow": "Cerrar ventana",
+  "app.quit": "Salir de {app}",
+  "app.desktop": "Escritorio {n}",
+  "app.newDesktop": "Escritorio nuevo",
+  "login.sleep": "Reposo",
+  "login.restart": "Reiniciar",
+  "login.shutDown": "Apagar"
 }

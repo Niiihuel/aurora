@@ -22,5 +22,14 @@ The design rules, tokens and QML patterns live in the project skill: `.claude/sk
 7. OSDs (volume, brightness)
 8. Lock screen
 9. Window chrome and Hyprland plugins (glass window rims, alt-tab)
+10. Hyprland config, login screen and the other apps' colors (independent of Ricelin)
 
-Until aurora's shell is complete it runs as its own Quickshell config alongside the current desktop (`~/dotfiles`), which stays in use.
+## Layout
+
+- `shell/` — the Quickshell shell (and `shell/lock.qml`, the lock screen as its own process).
+- `hypr/` — the Hyprland config (Lua); Home Manager links it into `~/.config/hypr`.
+- `plugins/rims/` — the Hyprland plugin that draws the liquid glass window rims.
+- `login/` — the SDDM login screen (`nix/login.nix` packages it).
+- `nix/` — packages and the Home Manager module; `scripts/` — session, settings and build helpers.
+
+`~/dotfiles` (the NixOS system) takes this repo as a flake input: it builds the rims plugin and the login screen from what's committed here, and enables `aurora.hyprland` with live links to `hypr/`.

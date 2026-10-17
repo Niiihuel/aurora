@@ -42,10 +42,13 @@ The material comes from `glass.frag` (limn's optics: convex squircle bezel, refr
 | bar | user slider 0–60% | 8 | 14 | 0.4 | the menu bar itself |
 | knob | white @ 12% (dark) / 50% (light) | sharp | 4, bezel 6 | 0 | a control's knob at rest; refracts the control's hidden "selected" copy |
 | lens | white @ 16% / 30% | sharp | 10, bezel 7 | 0.8 | a knob while lifted: magnify 1.1, flat middle, bent rim |
+| rim | `#262628` @ 15% | sharp | 8, bezel = rim | 0.4 | window rims (`plugins/rims`, Hyprland): 4 pt wide (`general.border_size`), saturation 2.0, edge light 1.1 focused / 0.4 the rest |
 
 `bezel` limits the bending band to a rim (points). Without it a capsule's bezel is its whole height and text under it duplicates into ghost rows. `magnify` zooms the middle of what's refracted.
 
 Shadow under glass (Apple's): `0 10px 40px` black at 20% (dark) / 10% (light). Draw it with `RectangularShadow`, never a layer effect on a resizing item.
+
+Window shadow (Hyprland `decoration.shadow`): range 40, render_power 2, offset `0 10`, black at 33% on the focused window and 19% on the rest.
 
 Reduce Transparency: replace glass with an opaque `#1C1C1E` (dark) / `#F2F2F7` (light) fill and keep the hairline.
 
