@@ -82,4 +82,61 @@ Singleton {
         requested = id;
         requestSerial++;
     }
+
+    // --- Tooltips ------------------------------------------------------------------
+
+    /**
+     * The hovered extra's tooltip (bar/TipLayer shows it): after a moment at
+     * rest on an extra, or at once while one was just showing, so sliding
+     * along the bar moves the bubble from extra to extra. A press or an open
+     * menu puts it away. `tip` follows the extra live (a battery draining).
+     */
+    property Item tipOwner: null
+    readonly property string tip: tipOwner ? tipOwner.tip : ""
+    property bool tipShown: false
+    property string tipScreen: ""
+    property real tipX: 0
+    property real tipWidth: 0
+
+    function hoverTip(owner) {
+        tipOwner = owner;
+        if (tipShown || tipWarm.running)
+            showTip();
+        else
+            tipDelay.restart();
+    }
+    function leaveTip(owner) {
+        if (tipOwner !== owner)
+            return;
+        tipOwner = null;
+        tipDelay.stop();
+        if (tipShown) {
+            tipShown = false;
+            tipWarm.restart();
+        }
+    }
+    function hideTip() {
+        tipDelay.stop();
+        tipWarm.stop();
+        tipShown = false;
+    }
+    function showTip() {
+        if (!tipOwner || !tip.length || isOpen)
+            return;
+        tipScreen = tipOwner.screenName;
+        tipX = tipOwner.anchor();
+        tipWidth = tipOwner.width;
+        tipShown = true;
+    }
+    onActiveChanged: if (isOpen) hideTip()
+
+    Timer {
+        id: tipDelay
+        interval: 600
+        onTriggered: root.showTip()
+    }
+    Timer {
+        id: tipWarm
+        interval: 500
+    }
 }

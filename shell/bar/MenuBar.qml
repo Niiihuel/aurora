@@ -189,6 +189,8 @@ PanelWindow {
             // Recording the screen: stop, and how long it's been (as macOS does).
             BarItem {
                 visible: Capture.state === "recording"
+                tip: I18n.tr("bar.tip.stopRecording")
+                screenName: bar.modelData.name
                 onClicked: Capture.stop()
                 Icon { glyph: Glyphs.stop; color: Tokens.label; anchors.verticalCenter: parent.verticalCenter }
                 Text {
@@ -209,6 +211,7 @@ PanelWindow {
                     menu: modelData.hasMenu ? "tray:" + modelData.id : ""
                     menuOnSecondary: !modelData.onlyMenu
                     screenName: bar.modelData.name
+                    tip: modelData.tooltipTitle || modelData.title
                     onClicked: if (!modelData.onlyMenu) modelData.activate()
                     onMiddleClicked: modelData.secondaryActivate()
                     // A template, like macOS extras: the app's shape in the bar's ink.
@@ -237,6 +240,8 @@ PanelWindow {
                 visible: AudioStatus.ready
                 menu: "sound"
                 screenName: bar.modelData.name
+                tip: AudioStatus.muted ? I18n.tr("bar.tip.muted")
+                    : I18n.tr("bar.tip.volume", { level: I18n.tr("common.percent", { n: Math.round(AudioStatus.volume * 100) }) })
                 Icon { glyph: Glyphs.speaker(AudioStatus.waves); anchors.verticalCenter: parent.verticalCenter }
             }
 
@@ -244,12 +249,19 @@ PanelWindow {
                 visible: BluetoothStatus.present
                 menu: "bluetooth"
                 screenName: bar.modelData.name
+                tip: BluetoothStatus.kind === "off" ? I18n.tr("bluetooth.off")
+                    : BluetoothStatus.kind === "connected" ? I18n.tr("bar.tip.bluetoothConnected", { names: BluetoothStatus.connected.map(d => d.name).join(", ") })
+                    : I18n.tr("bar.tip.bluetoothOn")
                 Icon { glyph: Glyphs.bluetooth(BluetoothStatus.kind); anchors.verticalCenter: parent.verticalCenter }
             }
 
             BarItem {
                 menu: "network"
                 screenName: bar.modelData.name
+                tip: NetworkStatus.kind === "wired" ? I18n.tr("bar.tip.wired")
+                    : NetworkStatus.kind === "wifi" ? I18n.tr("bar.tip.wifi", { name: NetworkStatus.name })
+                    : NetworkStatus.kind === "wifi-off" ? I18n.tr("network.wifiOff")
+                    : I18n.tr("bar.tip.noNetwork")
                 Icon {
                     anchors.verticalCenter: parent.verticalCenter
                     glyph: NetworkStatus.kind === "wired" ? Glyphs.ethernet
@@ -263,6 +275,15 @@ PanelWindow {
                 visible: BatteryStatus.present
                 menu: "battery"
                 screenName: bar.modelData.name
+                tip: {
+                    const seconds = BatteryStatus.charging ? BatteryStatus.timeToFull : BatteryStatus.timeToEmpty;
+                    const detail = BatteryStatus.full ? I18n.tr("battery.full")
+                        : seconds <= 0 ? ""
+                        : BatteryStatus.charging ? I18n.tr("battery.untilFull", { time: BatteryStatus.duration(seconds) })
+                        : I18n.tr("battery.remaining", { time: BatteryStatus.duration(seconds) });
+                    const level = I18n.tr("bar.tip.battery", { level: I18n.tr("common.percent", { n: Math.round(BatteryStatus.level * 100) }) });
+                    return detail.length ? `${level} · ${detail}` : level;
+                }
                 Text {
                     visible: Settings.batteryPercent
                     anchors.verticalCenter: parent.verticalCenter
@@ -283,12 +304,15 @@ PanelWindow {
             BarItem {
                 menu: "controlCenter"
                 screenName: bar.modelData.name
+                tip: I18n.tr("controlCenter.title")
                 Icon { glyph: Glyphs.controlCenter; anchors.verticalCenter: parent.verticalCenter }
             }
 
             BarItem {
                 menu: "notifications"
                 screenName: bar.modelData.name
+                // The full date, in the language's own long form.
+                tip: clock.date.toLocaleDateString(I18n.locale, Locale.LongFormat)
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: bar.clockText

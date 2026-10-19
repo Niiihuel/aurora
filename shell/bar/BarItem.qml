@@ -10,7 +10,8 @@ import "../core"
  * and motion there would be noise. A click opens the slot's `menu` (or closes
  * it if it's the open one); while any menu of this bar is open, simply moving
  * onto the slot switches to its menu (tracking). The capsule shows while
- * pressed and while the slot's menu is open.
+ * pressed and while the slot's menu is open. `tip` is what its tooltip
+ * says after a moment at rest on it (core/Menus, bar/TipLayer).
  */
 Item {
     id: root
@@ -25,6 +26,7 @@ Item {
      */
     property bool menuOnSecondary: false
     property real padding: Tokens.bar.itemPadding
+    property string tip: ""
 
     readonly property bool open: menu.length > 0 && Menus.active === menu && Menus.screen === screenName
     readonly property bool active: open || touch.pressed
@@ -59,6 +61,10 @@ Item {
         onHoveredChanged: {
             if (hovered && root.menu.length)
                 Menus.track(root.menu, root.screenName, root.anchor(), root.width);
+            if (hovered && root.tip.length)
+                Menus.hoverTip(root);
+            else if (!hovered)
+                Menus.leaveTip(root);
         }
     }
 
@@ -66,6 +72,7 @@ Item {
         id: touch
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        onPressed: Menus.hideTip()
         onClicked: mouse => {
             // A right click opens any slot's menu, as on macOS.
             const opens = mouse.button === Qt.RightButton || (mouse.button === Qt.LeftButton && !root.menuOnSecondary);

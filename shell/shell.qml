@@ -28,6 +28,11 @@ ShellRoot {
         delegate: MenuLayer {}
     }
 
+    Variants {
+        model: Quickshell.screens
+        delegate: TipLayer {}
+    }
+
     // The accent follows the main screen's wallpaper (Settings.accent overrides).
     Binding {
         target: WallpaperAccent
