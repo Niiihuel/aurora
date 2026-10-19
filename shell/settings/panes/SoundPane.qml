@@ -16,7 +16,6 @@ Column {
         SettingsRow {
             title: I18n.tr("settings.sound.volume")
             glyph: Glyphs.speaker(AudioStatus.waves)
-            glyphTint: Tokens.destructive
             MenuSlider {
                 width: 260
                 backdrop: root.backdrop

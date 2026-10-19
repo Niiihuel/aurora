@@ -19,7 +19,6 @@ Column {
             title: I18n.tr("battery.title")
             subtitle: I18n.tr("battery.source", { source: BatteryStatus.pluggedIn ? I18n.tr("battery.source.adapter") : I18n.tr("battery.source.battery") })
             glyph: Glyphs.bolt
-            glyphTint: Tokens.success
             Text {
                 text: I18n.tr("common.percent", { n: Math.round(BatteryStatus.level * 100) })
                 color: Tokens.secondaryLabel

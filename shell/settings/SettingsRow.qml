@@ -15,9 +15,10 @@ Item {
     property string title: ""
     property string subtitle: ""
     property var glyph: null
-    /** An image instead of a glyph tile (an app's own icon). */
+    /** An image instead of the glyph (an app's own icon). */
     property string image: ""
-    property color glyphTint: Tokens.accent
+    /** The glyph's colour: plain and quiet, colour only for a state (a connected device). */
+    property color glyphTint: Tokens.secondaryLabel
     property bool interactive: false
     /** In progress: macOS's spinner, where the icon goes (or at the end if the row has one). */
     property bool busy: false
@@ -66,21 +67,18 @@ Item {
         asynchronous: true
     }
 
-    Rectangle {
-        id: tile
+    Item {
         visible: !!root.glyph
         x: Tokens.space.l
         anchors.verticalCenter: parent.verticalCenter
         width: 24
         height: 24
-        radius: 6
-        color: root.glyphTint
         Icon {
             anchors.centerIn: parent
             glyph: root.glyph ?? []
-            size: 14
-            color: "white"
-            dimColor: Qt.rgba(1, 1, 1, 0.45)
+            size: 17
+            color: root.glyphTint
+            dimColor: Qt.alpha(root.glyphTint, 0.35)
         }
     }
 

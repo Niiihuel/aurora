@@ -1,7 +1,5 @@
 import QtQuick
 import QtQuick.Effects
-import Quickshell
-import Quickshell.Hyprland
 import "../core"
 import "../components"
 import "../services"
@@ -9,16 +7,15 @@ import "../core/search.mjs" as Search
 import "panes"
 
 /**
- * aurora's Settings, after macOS System Settings (Tahoe): a sidebar of liquid
- * glass floating inside the window — the window controls, a search field and
- * the sections, each with its coloured icon — and the chosen section's
- * groups of rows on the right under its title.
+ * aurora's Settings, after macOS System Settings: a sidebar floating inside
+ * the window — a search field and the sections, each with a plain
+ * icon — and the chosen section's groups of rows on the right under its
+ * title.
  *
- * The sidebar is live liquid glass over whatever is really behind the
- * window (the windows and wallpaper under it, refreshed like every other
- * glass): the window is transparent exactly under the sidebar and opaque
- * everywhere else, and its backdrop leaves this app's own window out. It is
- * placed from the window's position as Hyprland reports it.
+ * No liquid glass here, as in System Settings: the sidebar is a veil over
+ * Hyprland's blur of what's behind the window (the window is transparent
+ * exactly under the sidebar and opaque everywhere else), and the controls
+ * in the panes are solid (they get no backdrop).
  */
 Item {
     id: root
@@ -30,29 +27,29 @@ Item {
     // i18n-keys: settings.page.wifi settings.page.bluetooth settings.page.battery settings.page.general settings.page.accessibility settings.page.appearance settings.page.controlCenter settings.page.wallpaper settings.page.displays settings.page.notifications settings.page.sound settings.page.lockScreen settings.page.keyboard settings.page.language settings.page.apps
     readonly property var sections: [
         [
-            { id: "wifi", glyph: Glyphs.wifi(3), tint: Tokens.accent, pane: wifiPane },
-            { id: "bluetooth", glyph: Glyphs.bluetooth("on"), tint: Tokens.accent, pane: bluetoothPane }
+            { id: "wifi", glyph: Glyphs.wifi(3), pane: wifiPane },
+            { id: "bluetooth", glyph: Glyphs.bluetooth("on"), pane: bluetoothPane }
         ],
         [
-            { id: "battery", glyph: Glyphs.bolt, tint: Tokens.success, pane: batteryPane, hidden: !BatteryStatus.present },
-            { id: "general", glyph: Glyphs.gear, tint: Tokens.neutral, pane: generalPane },
-            { id: "accessibility", glyph: Glyphs.person, tint: Tokens.accent, pane: accessibilityPane },
-            { id: "appearance", glyph: Glyphs.darkMode, tint: Tokens.neutral, pane: appearancePane },
-            { id: "controlCenter", glyph: Glyphs.controlCenter, tint: Tokens.neutral, pane: controlCenterPane },
-            { id: "wallpaper", glyph: Glyphs.photo, tint: Tokens.accent, pane: wallpaperPane },
-            { id: "displays", glyph: Glyphs.sun, tint: Tokens.accent, pane: displaysPane }
+            { id: "battery", glyph: Glyphs.bolt, pane: batteryPane, hidden: !BatteryStatus.present },
+            { id: "general", glyph: Glyphs.gear, pane: generalPane },
+            { id: "accessibility", glyph: Glyphs.person, pane: accessibilityPane },
+            { id: "appearance", glyph: Glyphs.darkMode, pane: appearancePane },
+            { id: "controlCenter", glyph: Glyphs.controlCenter, pane: controlCenterPane },
+            { id: "wallpaper", glyph: Glyphs.photo, pane: wallpaperPane },
+            { id: "displays", glyph: Glyphs.sun, pane: displaysPane }
         ],
         [
-            { id: "notifications", glyph: Glyphs.bell, tint: Tokens.destructive, pane: notificationsPane },
-            { id: "sound", glyph: Glyphs.speaker(3), tint: Tokens.destructive, pane: soundPane }
+            { id: "notifications", glyph: Glyphs.bell, pane: notificationsPane },
+            { id: "sound", glyph: Glyphs.speaker(3), pane: soundPane }
         ],
         [
-            { id: "lockScreen", glyph: Glyphs.lock, tint: Tokens.neutral, pane: lockPane },
-            { id: "keyboard", glyph: Glyphs.keyboard, tint: Tokens.neutral, pane: keyboardPane },
-            { id: "language", glyph: Glyphs.globe, tint: Tokens.accent, pane: languagePane }
+            { id: "lockScreen", glyph: Glyphs.lock, pane: lockPane },
+            { id: "keyboard", glyph: Glyphs.keyboard, pane: keyboardPane },
+            { id: "language", glyph: Glyphs.globe, pane: languagePane }
         ],
         [
-            { id: "apps", glyph: Glyphs.apps, tint: Tokens.accent, pane: appsPane }
+            { id: "apps", glyph: Glyphs.apps, pane: appsPane }
         ]
     ]
     readonly property var all: [].concat(...sections).filter(s => !s.hidden)
@@ -62,33 +59,7 @@ Item {
         return I18n.tr("settings.page." + s.id);
     }
 
-    // --- Where the window is, for the sidebar's glass -----------------------------
-
-    readonly property var toplevel: {
-        for (const t of Hyprland.toplevels.values)
-            if (t.lastIpcObject && t.lastIpcObject.pid === Quickshell.processId)
-                return t;
-        return null;
-    }
-    readonly property var monitor: {
-        const o = toplevel?.lastIpcObject;
-        return Hyprland.monitors.values.find(m => o && m.id === o.monitor) ?? Hyprland.focusedMonitor;
-    }
-    readonly property point origin: {
-        const o = toplevel?.lastIpcObject;
-        return o && o.at ? Qt.point(o.at[0] - (monitor?.x ?? 0), o.at[1] - (monitor?.y ?? 0)) : Qt.point(0, 0);
-    }
-
-    GlassBackdrop {
-        id: settingsBackdrop
-        screen: Quickshell.screens.find(s => s.name === root.monitor?.name) ?? Quickshell.screens[0]
-        origin: root.origin
-        excludePid: Quickshell.processId
-        blur: Tokens.glass.sidebar.blur
-        region: Qt.rect(root.origin.x + sidebar.x, root.origin.y + sidebar.y, sidebar.width, sidebar.height)
-    }
-
-    // The window's background, with a hole where the sidebar's glass sits.
+    // The window's background, with a hole where the sidebar sits.
     Rectangle {
         anchors.fill: parent
         color: Tokens.windowFill
@@ -124,13 +95,10 @@ Item {
         width: 236
         height: parent.height - 16
 
-        Glass {
+        Rectangle {
             anchors.fill: parent
-            backdrop: settingsBackdrop
-            material: Tokens.glass.sidebar
             radius: 18
-            shadow: false
-            track: [root.origin.x, root.origin.y]
+            color: Settings.reduceTransparency ? Tokens.solidFill : Tokens.sidebarFill
         }
 
         SearchField {
@@ -179,19 +147,18 @@ Item {
                                     radius: 8
                                     color: entry.on ? Tokens.accent : "transparent"
                                 }
-                                Rectangle {
+                                Item {
                                     x: 8
                                     anchors.verticalCenter: parent.verticalCenter
                                     width: 20
                                     height: 20
-                                    radius: 5
-                                    color: entry.modelData.tint
                                     Icon {
+                                        id: entryIcon
                                         anchors.centerIn: parent
                                         glyph: entry.modelData.glyph
-                                        size: 12
-                                        color: "white"
-                                        dimColor: Qt.rgba(1, 1, 1, 0.45)
+                                        size: 16
+                                        color: entry.on ? "white" : Tokens.secondaryLabel
+                                        dimColor: Qt.alpha(entryIcon.color, 0.35)
                                     }
                                 }
                                 Text {
@@ -247,8 +214,6 @@ Item {
                 sourceComponent: root.current ? root.current.pane : null
                 onLoaded: {
                     item.width = Qt.binding(() => scroller.width);
-                    if (item.backdrop !== undefined)
-                        item.backdrop = settingsBackdrop;
                     scroller.contentY = -scroller.topMargin;
                 }
             }

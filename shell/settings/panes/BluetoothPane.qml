@@ -14,7 +14,6 @@ Column {
         SettingsRow {
             title: I18n.tr("bluetooth.title")
             glyph: Glyphs.bluetooth("on")
-            glyphTint: Tokens.accent
             MenuSwitch {
                 checked: BluetoothStatus.enabled
                 onToggled: on => BluetoothStatus.setEnabled(on)
@@ -33,7 +32,7 @@ Column {
                 subtitle: modelData.connected ? I18n.tr("bluetooth.connected") : ""
                 busy: BluetoothStatus.busy(modelData)
                 glyph: Glyphs.forDevice(modelData.icon)
-                glyphTint: modelData.connected ? Tokens.accent : Tokens.toggleOff
+                glyphTint: modelData.connected ? Tokens.accent : Tokens.secondaryLabel
                 interactive: true
                 onClicked: BluetoothStatus.toggle(modelData)
             }

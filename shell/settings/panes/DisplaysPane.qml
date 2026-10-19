@@ -18,7 +18,6 @@ Column {
         SettingsRow {
             title: I18n.tr("controlCenter.display")
             glyph: Glyphs.sun
-            glyphTint: Tokens.accent
             MenuSlider {
                 width: 260
                 backdrop: root.backdrop

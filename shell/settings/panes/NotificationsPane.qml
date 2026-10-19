@@ -13,7 +13,6 @@ Column {
         SettingsRow {
             title: I18n.tr("controlCenter.focus")
             glyph: Glyphs.moon
-            glyphTint: Tokens.accent
             MenuSwitch {
                 checked: Settings.doNotDisturb
                 onToggled: on => Settings.doNotDisturb = on

@@ -106,6 +106,12 @@ Singleton {
     readonly property color groupFill: dark ? Qt.rgba(1, 1, 1, 0.055) : Qt.rgba(1, 1, 1, 0.85)
     /** Settings: the window's own background, behind the content. */
     readonly property color windowFill: dark ? "#1E1E20" : "#ECECEF"
+    /**
+     * Settings: the sidebar's veil over Hyprland's blur of what's behind the
+     * window (macOS's sidebar vibrancy, not glass): dense and nearly grey, so
+     * the desktop reads as soft blotches and never competes with the list.
+     */
+    readonly property color sidebarFill: dark ? Qt.rgba(0.17, 0.17, 0.18, 0.74) : Qt.rgba(0.93, 0.93, 0.94, 0.72)
 
     /** A neutral (system gray) tile, e.g. a settings icon that has no colour of its own. */
     readonly property color neutral: dark ? "#636366" : "#8E8E93"
@@ -126,17 +132,6 @@ Singleton {
         regular: {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.48) : Qt.rgba(0.961, 0.961, 0.969, 0.45),
             blur: 8, refraction: 32, dispersion: 0.5, saturation: 2.2, dim: 0
-        },
-        /**
-         * A window's sidebar (Settings): still live glass, but a dense veil
-         * with muted color and a heavy blur, so what's behind reads as soft
-         * blotches and never competes with the list — as in Apple's
-         * Liquid Glass adoption guide (the sidebar over a photo measures a
-         * ~60% grey veil, color nearly gone).
-         */
-        sidebar: {
-            tint: dark ? Qt.rgba(0.17, 0.17, 0.18, 0.74) : Qt.rgba(0.93, 0.93, 0.94, 0.72),
-            blur: 20, refraction: 24, dispersion: 0.3, saturation: 1.1, dim: 0
         },
         regularSmall: {
             tint: dark ? Qt.rgba(0.149, 0.149, 0.157, 0.48) : Qt.rgba(0.961, 0.961, 0.969, 0.45),

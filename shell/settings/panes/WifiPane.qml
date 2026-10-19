@@ -18,7 +18,6 @@ Column {
         SettingsRow {
             title: I18n.tr("network.wifi")
             glyph: Glyphs.wifi(3)
-            glyphTint: Tokens.accent
             MenuSwitch {
                 checked: NetworkStatus.wifiEnabled
                 onToggled: on => NetworkStatus.setWifiEnabled(on)
@@ -46,7 +45,6 @@ Column {
                 subtitle: modelData.stateChanging ? I18n.tr("network.connecting") : ""
                 busy: modelData.stateChanging
                 glyph: Glyphs.wifi(NetworkStatus.barsOf(modelData))
-                glyphTint: Tokens.toggleOff
                 interactive: true
                 onClicked: {
                     if (!NetworkStatus.join(modelData))

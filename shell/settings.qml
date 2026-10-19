@@ -17,7 +17,7 @@ ShellRoot {
         implicitWidth: 940
         implicitHeight: 640
         minimumSize: Qt.size(760, 520)
-        // SettingsApp paints the background, leaving the sidebar's glass see-through.
+        // SettingsApp paints the background, leaving the sidebar see-through for Hyprland's blur.
         color: "transparent"
         // Closed by the user or the compositor: end the app. (Not on
         // visibility: a hot reload hides the old window too.)
