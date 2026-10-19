@@ -9,6 +9,7 @@ local function spring(name, d, b)
 end
 spring("smooth", 0.40, 0)  -- Motion.smooth: most things
 spring("dismiss", 0.20, 0) -- Motion.dismiss: going away is quicker than arriving
+spring("swift", 0.28, 0)   -- desktops: crossed all the time, so quicker than smooth
 
 local function animate(leaf, curve, style)
     hl.animation({ leaf = leaf, enabled = true, speed = 1, spring = curve, style = style })
@@ -38,7 +39,7 @@ still("borderangle")
 if reduceMotion() then
     still("windows")
     still("layers")
-    animate("workspaces", "smooth", "fade")
+    animate("workspaces", "swift", "fade")
     animate("fadeOut", "dismiss")
     return
 end
@@ -50,7 +51,7 @@ animate("windowsIn", "smooth", "popin 94%")
 animate("windowsOut", "dismiss", "popin 94%")
 animate("fadeOut", "dismiss")
 -- Desktops slide side by side, like Spaces; the hidden ones fade over.
-animate("workspaces", "smooth", "slide")
+animate("workspaces", "swift", "slide")
 animate("specialWorkspace", "smooth", "fade")
 -- Other programs' layers just fade (aurora's animate themselves; see look.lua).
 animate("layers", "smooth", "fade")
