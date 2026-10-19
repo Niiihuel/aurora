@@ -10,7 +10,9 @@ import ".."
  * aside without touching ~/dotfiles) and install them; apply pending
  * changes; and every installed app — searchable, with where it comes from
  * and a split button: Open, and in its menu Uninstall when the source allows
- * it (see services/Packages for what that means on NixOS).
+ * it (see services/Packages for what that means on NixOS) — or Keep, while
+ * an uninstall waits to be applied. Below, the apps uninstalled from the
+ * system, to reinstall.
  */
 Column {
     id: root
@@ -86,8 +88,8 @@ Column {
         onTextChanged: root.query = text
     }
 
-    // i18n-keys: settings.apps.kind.managed settings.apps.kind.profile settings.apps.kind.local settings.apps.kind.system
-    // i18n-keys: settings.apps.uninstallMessage.managed settings.apps.uninstallMessage.profile settings.apps.uninstallMessage.local
+    // i18n-keys: settings.apps.kind.managed settings.apps.kind.profile settings.apps.kind.local settings.apps.kind.removable settings.apps.kind.system
+    // i18n-keys: settings.apps.uninstallMessage.managed settings.apps.uninstallMessage.profile settings.apps.uninstallMessage.local settings.apps.uninstallMessage.removable
     SettingsGroup {
         title: I18n.tr("settings.apps.installed", { n: root.apps.length })
         footer: I18n.tr("settings.apps.note")
@@ -98,8 +100,10 @@ Column {
                 required property var modelData
                 // Re-read when the scan finishes (sources is replaced as a whole).
                 readonly property var source: { void Packages.sources; return Packages.sourceOf(modelData); }
+                // Uninstalled, waiting for the rebuild.
+                readonly property bool leaving: source.kind === "removable" && Packages.removed.includes(source.name)
                 title: modelData.name
-                subtitle: [modelData.genericName || modelData.comment || "", I18n.tr("settings.apps.kind." + source.kind)].filter(s => s.length).join(" · ")
+                subtitle: [modelData.genericName || modelData.comment || "", leaving ? I18n.tr("settings.apps.leaving") : I18n.tr("settings.apps.kind." + source.kind)].filter(s => s.length).join(" · ")
                 image: Apps.iconFor(modelData)
                 SplitButton {
                     text: I18n.tr("settings.apps.open")
@@ -107,7 +111,7 @@ Column {
                     onClicked: Apps.launch(row.modelData)
                     menu: [
                         { label: I18n.tr("settings.apps.open"), act: () => Apps.launch(row.modelData) },
-                        {
+                        row.leaving ? { label: I18n.tr("settings.apps.keep"), act: () => Packages.reinstall(row.source.name) } : {
                             label: row.source.kind === "system" ? I18n.tr("settings.apps.uninstallSystem") : I18n.tr("settings.apps.uninstall") + "…",
                             destructive: true,
                             enabled: row.source.kind !== "system",
@@ -120,6 +124,28 @@ Column {
                             })
                         }
                     ]
+                }
+            }
+        }
+    }
+
+    SettingsGroup {
+        visible: Packages.index.removed.length > 0
+        title: I18n.tr("settings.apps.uninstalled", { n: Packages.index.removed.length })
+        Repeater {
+            model: Packages.index.removed
+            delegate: SettingsRow {
+                id: gone
+                required property var modelData
+                // Reinstalled, waiting for the rebuild.
+                readonly property bool returning: !Packages.removed.includes(modelData.name)
+                title: modelData.name
+                subtitle: returning ? I18n.tr("settings.apps.returning") : modelData.description
+                glyph: Glyphs.apps
+                Button {
+                    visible: !gone.returning
+                    text: I18n.tr("settings.apps.reinstall")
+                    onClicked: Packages.reinstall(gone.modelData.name)
                 }
             }
         }

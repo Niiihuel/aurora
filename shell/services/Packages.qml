@@ -15,7 +15,12 @@ import Quickshell.Io
  *   removed from the list, then the system is rebuilt;
  * - profile: installed with `nix profile` — `nix profile remove`;
  * - local: a desktop file (and AppImage) in the home folder — deleted;
- * - system: part of the hand-written configuration (packages.nix and the
+ * - removable: one of the apps packages.nix lists as such — its name is
+ *   added to ~/dotfiles/modules/nixos/packages-removed.json (names only,
+ *   never Nix code), then the system is rebuilt. The running system says
+ *   which desktop file belongs to which of these apps, and which were
+ *   removed (to reinstall them), in /etc/aurora/apps.json;
+ * - system: the rest of the configuration (the desktop itself, the
  *   modules) — can only be removed there.
  *
  * Root work goes through the dotfiles' oneshot units with a polkit rule
@@ -29,13 +34,21 @@ Singleton {
     readonly property string home: Quickshell.env("HOME")
     readonly property string repo: home + "/dotfiles"
     readonly property string managedPath: repo + "/modules/nixos/packages-managed.json"
+    readonly property string removedPath: repo + "/modules/nixos/packages-removed.json"
     readonly property string appliedPath: (Quickshell.env("XDG_STATE_HOME") || home + "/.local/state") + "/aurora/packages-applied.json"
 
-    /** Desktop id → { kind: "managed" | "profile" | "local" | "system", name, file, appimage }. */
+    /** Desktop id → { kind: "managed" | "profile" | "local" | "removable" | "system", name, file, appimage }. */
     property var sources: ({})
     property var managed: []
     property var applied: []
+    /** Names of removable apps to leave out of the system (packages-removed.json). */
+    property var removed: []
+    /** The running system's /etc/aurora/apps.json: { apps: desktop id → name, removed: [{ name, description }] }. */
+    property var index: ({ apps: {}, removed: [] })
+    readonly property var installed: Object.values(index.apps)
     readonly property bool pending: JSON.stringify(managed.slice().sort()) !== JSON.stringify(applied.slice().sort())
+        || removed.some(n => installed.includes(n))
+        || index.removed.some(r => !removed.includes(r.name))
 
     /**
      * "" idle; checking for updates: "checking" (newest flake inputs) →
@@ -55,6 +68,8 @@ Singleton {
             scanner.running = true;
         managedFile.reload();
         appliedFile.reload();
+        removedFile.reload();
+        indexFile.reload();
     }
 
     function sourceOf(entry) {
@@ -72,7 +87,19 @@ Singleton {
         } else if (s.kind === "local") {
             Quickshell.execDetached(["sh", "-c", "rm -f -- \"$1\" ${2:+\"$2\"}", "_", s.file, s.appimage || ""]);
             rescanSoon.restart();
+        } else if (s.kind === "removable") {
+            setRemoved(removed.concat([s.name]));
         }
+    }
+
+    /** Take a removable app off the removed list (a pending uninstall, or one done). */
+    function reinstall(name) {
+        setRemoved(removed.filter(n => n !== name));
+    }
+
+    function setRemoved(names) {
+        removed = names;
+        removedFile.setText(JSON.stringify(names, null, 2) + "\n");
     }
 
     /** Rebuild the system from the dotfiles (asks for the password). */
@@ -181,6 +208,23 @@ Singleton {
         }
     }
     FileView {
+        id: removedFile
+        path: root.removedPath
+        atomicWrites: false
+        onLoaded: {
+            try { root.removed = JSON.parse(text()); } catch (e) { root.removed = []; }
+        }
+    }
+    FileView {
+        id: indexFile
+        path: "/etc/aurora/apps.json"
+        // Loaded before the scan reads it.
+        blockLoading: true
+        onLoaded: {
+            try { root.index = JSON.parse(text()); } catch (e) { root.index = { apps: {}, removed: [] }; }
+        }
+    }
+    FileView {
         id: appliedFile
         path: root.appliedPath
         onLoaded: {
@@ -222,9 +266,11 @@ Singleton {
                         kind = profile.includes(name) ? "profile" : "system";
                     else if (root.managed.some(a => a.split(".").pop() === name))
                         kind = "managed";
+                    else if (root.index.apps[id])
+                        kind = "removable";
                     map[id] = {
                         kind,
-                        name: kind === "managed" ? root.managed.find(a => a.split(".").pop() === name) : name,
+                        name: kind === "managed" ? root.managed.find(a => a.split(".").pop() === name) : kind === "removable" ? root.index.apps[id] : name,
                         file: kind === "local" ? dir + "/applications/" + id + ".desktop" : "",
                         appimage: kind === "local" && /\.AppImage$/i.test(exe || "") ? exe : ""
                     };
