@@ -23,7 +23,7 @@ import "../annotate/geometry.mjs" as G
  *
  * Copy, save and upload ask the selection's layer for the image
  * (`exportRequested`); it renders the screenshot and its marks at the
- * screen's full resolution and hands the file back to `deliver`.
+ * screen's full resolution and hands the file back to `crop`.
  */
 Singleton {
     id: root
@@ -309,6 +309,35 @@ Singleton {
         if (action === "save" || (action === "copy" && Settings.annotateKeepCopy))
             return savePath();
         return runtime + `/aurora-shot-${Date.now()}.png`;
+    }
+
+    /**
+     * The layer grabbed the whole screen into `full`: crop it to `geometry`
+     * (device pixels) and finish the action. The editor goes now, unless a
+     * save dialog may send it back to editing; the crop runs here because
+     * the layers are unloaded when the editor closes.
+     */
+    function crop(action, full, geometry) {
+        if (action !== "save" || !Settings.annotateAskWhere)
+            close();
+        cropProc.action = action;
+        cropProc.file = targetFor(action);
+        cropProc.command = ["bash", "-c", 'magick "$1" -crop "$3" +repage -define png:compression-level=1 "$2"; rc=$?; rm -f "$1"; exit $rc',
+            "_", full, cropProc.file, geometry];
+        cropProc.running = true;
+    }
+    Process {
+        id: cropProc
+        property string action: ""
+        property string file: ""
+        onExited: code => {
+            if (code === 0) {
+                root.deliver(action, file);
+            } else {
+                Quickshell.execDetached(["notify-send", "-a", "aurora", "-u", "critical", I18n.tr("annotate.exportFailed")]);
+                root.close();
+            }
+        }
     }
 
     /** The layer wrote the image to `file`: finish the action. */

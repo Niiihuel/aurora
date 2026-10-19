@@ -178,7 +178,8 @@ Singleton {
         const file = toClipboard ? "" : folderFor("shot") + "/" + I18n.tr("capture.shotFile", t) + ".png";
         pendingFile = file;
         pendingThumb = toClipboard ? thumb : file;
-        const grim = ["grim"].concat(Settings.capturePointer ? ["-c"] : []).concat(grimTarget());
+        // PNG level 1: grim's default (6) takes ~0.8 s for a 2880×1800 screen, this ~0.2 s.
+        const grim = ["grim", "-l", "1"].concat(Settings.capturePointer ? ["-c"] : []).concat(grimTarget());
         // Into the cache first, then to its place (or the clipboard).
         shotProc.command = ["bash", "-c",
             'mkdir -p "$(dirname "$1")" && "${@:3}" "$1" && if [ -n "$2" ]; then mkdir -p "$(dirname "$2")" && cp "$1" "$2"; else wl-copy -t image/png < "$1"; fi',
@@ -230,7 +231,7 @@ Singleton {
             return;
         state = "busy";
         recordThumb = cache + `/rec-${Date.now()}.png`;
-        thumbProc.command = ["sh", "-c", 'mkdir -p "$(dirname "$1")" && shift && exec "$@"', "_", recordThumb, "grim"].concat(grimTarget()).concat([recordThumb]);
+        thumbProc.command = ["sh", "-c", 'mkdir -p "$(dirname "$1")" && shift && exec "$@"', "_", recordThumb, "grim", "-l", "1"].concat(grimTarget()).concat([recordThumb]);
         thumbProc.running = true;
     }
 

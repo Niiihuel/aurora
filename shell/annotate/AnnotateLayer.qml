@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
-import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import "../core"
@@ -41,7 +40,10 @@ PanelWindow {
     readonly property rect sel: Annotate.selection
     readonly property bool ready: frozenLoader.item ? frozenLoader.item.hasContent : false
 
-    visible: selecting || editing
+    // Straight from the phase: through `selecting || editing` the switch from
+    // one to the other passes a moment where both read false, which hid the
+    // window (unmapping its surface) and showed it again.
+    visible: Annotate.phase === "selecting" || Annotate.phase === "editing"
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
@@ -331,11 +333,15 @@ PanelWindow {
         function point(mouse) {
             return G.clampPoint(mouse.x, mouse.y, root.sel);
         }
+        /** The region dragged from the press to `mouse`. */
+        function span(mouse) {
+            return root.clampRect(Qt.rect(Math.min(from.x, mouse.x), Math.min(from.y, mouse.y), Math.abs(mouse.x - from.x), Math.abs(mouse.y - from.y)));
+        }
 
         onPositionChanged: mouse => {
             if (root.selecting) {
                 if (dragging) {
-                    dragRect = root.clampRect(Qt.rect(Math.min(from.x, mouse.x), Math.min(from.y, mouse.y), Math.abs(mouse.x - from.x), Math.abs(mouse.y - from.y)));
+                    dragRect = span(mouse);
                 } else {
                     const w = Annotate.mode === "monitor" ? null : root.windowAt(mouse.x, mouse.y);
                     hoverRect = Annotate.mode === "monitor" ? Qt.rect(0, 0, root.width, root.height) : (w ? root.clampRect(w.rect) : null);
@@ -426,6 +432,8 @@ PanelWindow {
                 if (!dragging)
                     return;
                 dragging = false;
+                // From the release itself: under load the last moves can arrive merged into it.
+                dragRect = span(mouse);
                 if (dragRect.width > 2 && dragRect.height > 2) {
                     Annotate.choose(root.name, dragRect);
                 } else {
@@ -469,7 +477,8 @@ PanelWindow {
         width: Math.max(contentWidth + 4, 8)
         color: Annotate.draft ? Annotate.draft.color : "white"
         font.family: Tokens.family
-        font.pixelSize: Annotate.draft ? Annotate.draft.size : 28
+        // Only text drafts have a size (the others flooded the log on every move).
+        font.pixelSize: Annotate.draft?.size ?? 28
         cursorVisible: true
         onTextChanged: if (Annotate.typing && Annotate.draft) Annotate.draft = Object.assign({}, Annotate.draft, { text: text })
         Keys.onPressed: event => {
@@ -578,33 +587,15 @@ PanelWindow {
         function onExportRequested(action) {
             if (!root.mine)
                 return;
-            const file = Annotate.targetFor(action);
-            const full = Annotate.runtime + `/aurora-shot-full-${Date.now()}.png`;
+            // BMP: Qt's PNG encoder would hold the shell up for most of a second.
+            const full = Annotate.runtime + `/aurora-shot-full-${Date.now()}.bmp`;
             const r = root.sel;
             const s = root.dpr;
             stage.grabToImage(result => {
                 result.saveToFile(full);
-                crop.action = action;
-                crop.file = file;
-                crop.command = ["bash", "-c", 'magick "$1" -crop "$3" +repage "$2"; rc=$?; rm -f "$1"; exit $rc', "_", full, file,
-                    `${Math.round(r.width * s)}x${Math.round(r.height * s)}+${Math.round(r.x * s)}+${Math.round(r.y * s)}`];
-                crop.running = true;
+                Annotate.crop(action, full, `${Math.round(r.width * s)}x${Math.round(r.height * s)}+${Math.round(r.x * s)}+${Math.round(r.y * s)}`);
             // grabToImage already renders at the screen's scale: ask for the logical size.
             }, Qt.size(root.width, root.height));
-        }
-    }
-
-    Process {
-        id: crop
-        property string action: ""
-        property string file: ""
-        onExited: code => {
-            if (code === 0) {
-                Annotate.deliver(action, file);
-            } else {
-                Quickshell.execDetached(["notify-send", "-a", "aurora", "-u", "critical", I18n.tr("annotate.exportFailed")]);
-                Annotate.close();
-            }
         }
     }
 }
