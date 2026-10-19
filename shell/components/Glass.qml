@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Shapes
 import "../core"
 
 /**
@@ -27,6 +28,9 @@ import "../core"
  * `track`. The shadow is analytic (RectangularShadow), never a layer effect.
  * Reduce Transparency turns it into an opaque fill; Reduce Motion keeps the
  * highlight but drops the growth.
+ *
+ * A tooltip's pointer (`tail`) is part of the same glass: it takes its
+ * length from the item's height, on the bottom edge (side > 0) or the top.
  */
 Item {
     id: root
@@ -63,6 +67,11 @@ Item {
      * through the lifted knob, as Apple's segmented control does.
      */
     property bool hideRefracted: false
+    /** The pointer: apex x in this item, half its base, length (0 = none), side (+1 bottom, −1 top). */
+    property vector4d tail: Qt.vector4d(0, 0, 0, 0)
+    // The body: this item without the pointer's room.
+    readonly property real tailTop: tail.z > 0 && tail.w < 0 ? tail.z : 0
+    readonly property real tailBottom: tail.z > 0 && tail.w > 0 ? tail.z : 0
     property bool interactive: false
     property bool held: false
     property real pressScale: Motion.pressScale
@@ -165,6 +174,8 @@ Item {
         visible: opacity > 0.01
         opacity: root.shadow ? 1 : root.liftShadow ? Math.max(0, Math.min(1, lift.value)) : 0
         anchors.fill: parent
+        anchors.topMargin: root.tailTop
+        anchors.bottomMargin: root.tailBottom
         radius: root.radius
         offset: Qt.vector2d(0, Tokens.shadow.offsetY)
         blur: Tokens.shadow.blur
@@ -174,10 +185,32 @@ Item {
     Rectangle {
         visible: root.opaque
         anchors.fill: parent
+        anchors.topMargin: root.tailTop
+        anchors.bottomMargin: root.tailBottom
         radius: root.radius
         color: root.glow > 0 ? Qt.lighter(Tokens.solidFill, 1 + 0.25 * root.glow) : Tokens.solidFill
         border.width: 1
         border.color: Tokens.separator
+    }
+    // The pointer is there opaque too: its base reaches over the body's
+    // border so the two read as one shape; only its sides are outlined.
+    Shape {
+        id: pointer
+        visible: root.opaque && root.tail.z > 0.5
+        anchors.fill: parent
+        preferredRendererType: Shape.CurveRenderer
+        // The base sits 1.5 pt inside the body, over its border.
+        readonly property real base: root.tail.w > 0 ? height - root.tail.z - 1.5 : root.tail.z + 1.5
+        readonly property real apex: root.tail.w > 0 ? height : 0
+        ShapePath {
+            fillColor: Tokens.solidFill
+            strokeColor: Tokens.separator
+            strokeWidth: 1
+            startX: root.tail.x - root.tail.y
+            startY: pointer.base
+            PathLine { x: root.tail.x; y: pointer.apex }
+            PathLine { x: root.tail.x + root.tail.y; y: pointer.base }
+        }
     }
 
     ShaderEffect {
@@ -218,10 +251,11 @@ Item {
         // A radius of half the short side is a capsule: Apple draws those
         // with true semicircular ends, so the squircle exponent only
         // applies to rounded rectangles.
-        property real power: root.radius >= 0.5 * Math.min(width, height) - 0.5 ? 2 : root.power
+        property real power: root.radius >= 0.5 * Math.min(width, height - root.tailTop - root.tailBottom) - 0.5 ? 2 : root.power
         property real dpr: root.dpr
         property vector4d glow: Qt.vector4d(root.glowAt.x, root.glowAt.y, root.glow, root.effective.shade ?? 1)
         property vector4d lens: Qt.vector4d(root.effective.magnify ?? 1, root.effective.bezel ?? 0, root.edge ? 1 : 0, root.bloom * 0.12)
+        property vector4d tail: root.tail
 
         fragmentShader: Qt.resolvedUrl("../shaders/glass.frag.qsb")
     }

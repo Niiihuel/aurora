@@ -40,6 +40,15 @@ Item {
      */
     property Item refracts: null
     property bool bare: false
+    /**
+     * A tooltip's pointer toward x (this item's coordinates; < 0 = none), on
+     * the bottom edge (side +1) or the top (−1). `toRect` includes its length;
+     * it grows in as the shape forms.
+     */
+    property real tailX: -1
+    property int tailSide: 0
+    readonly property real tailLength: 8
+    readonly property real tailHalf: 8
     /** Extra geometry the glass depends on (whatever moves this item on screen). */
     property var track: []
     default property alias content: inner.data
@@ -190,6 +199,10 @@ Item {
             return drop + (root.panelRadius - drop) * root.shaped;
         }
         bloom: root.bloom
+        tail: root.tailX < 0 || !root.tailSide ? Qt.vector4d(0, 0, 0, 0)
+            // Kept clear of the corners when the bubble is pushed against an edge.
+            : Qt.vector4d(Math.max(root.panelRadius + root.tailHalf, Math.min(width - root.panelRadius - root.tailHalf, root.tailX - x)),
+                root.tailHalf * root.shaped, root.tailLength * root.shaped, root.tailSide)
         // Closing keeps the veil: Apple's returning drop is the densest glass of the motion.
         presence: root.open ? 0.25 + 0.75 * root.shaped : 1
         opacity: (root.open ? 1 : root.span(root.progress, 0.0, 0.12)) * Math.max(1 - root.reveal, carrier.value)

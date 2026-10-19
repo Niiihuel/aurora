@@ -11,7 +11,8 @@
 //
 // The outline is a rounded rectangle whose corners are superellipses
 // (|x|^p + |y|^p = r^p): p = 2 is a circular arc, p ≈ 4 matches Apple's
-// continuous corners.
+// continuous corners. A tooltip adds a pointer to one edge, joined to the
+// body with a soft fillet so the rim runs around both as one piece of glass.
 
 layout(location = 0) in vec2 qt_TexCoord0;
 layout(location = 0) out vec4 fragColor;
@@ -28,6 +29,7 @@ layout(std140, binding = 0) uniform buf {
     float dpr;       // device pixels per point
     vec4 glow;       // press highlight: centre in item uv (xy), strength 0–1 (z); inner edge shade 0–1 (w)
     vec4 lens;       // magnification of the middle (x; 1 = none), rim bezel width in points (y; 0 = corner radius), edge on/off (z), bloom 0–1 (w)
+    vec4 tail;       // pointer: apex x in points (x), half its base (y), length (z; 0 = none), on the bottom edge (w > 0) or the top (w < 0)
 };
 
 layout(binding = 1) uniform sampler2D source;
@@ -35,18 +37,47 @@ layout(binding = 2) uniform sampler2D sharp;
 
 const vec2 LIGHT = vec2(-0.5432, -0.8396); // normalized (-0.55, -0.85): top-left
 
+// The body: the item without the room its pointer takes.
+vec2 bodySize() {
+    return vec2(itemSize.x, itemSize.y - max(tail.z, 0.0));
+}
+
 float cornerRadius() {
-    return min(radius, 0.5 * min(itemSize.x, itemSize.y));
+    vec2 size = bodySize();
+    return min(radius, 0.5 * min(size.x, size.y));
+}
+
+// Signed distance to an isosceles triangle with its apex at the origin and
+// its base (half-width q.x) at y = q.y (Inigo Quilez).
+float triangle(vec2 p, vec2 q) {
+    p.x = abs(p.x);
+    vec2 a = p - q * clamp(dot(p, q) / dot(q, q), 0.0, 1.0);
+    vec2 b = p - q * vec2(clamp(p.x / q.x, 0.0, 1.0), 1.0);
+    float s = -sign(q.y);
+    vec2 d = min(vec2(dot(a, a), s * (p.x * q.y - p.y * q.x)), vec2(dot(b, b), s * (p.y - q.y)));
+    return -sqrt(d.x) * sign(d.y);
 }
 
 // Signed distance (approximate for p != 2) to the outline, in points.
 float outline(vec2 p) {
     float r = cornerRadius();
-    vec2 q = abs(p - 0.5 * itemSize) - 0.5 * itemSize + vec2(r);
+    vec2 size = bodySize();
+    vec2 origin = vec2(0.0, tail.w < 0.0 ? max(tail.z, 0.0) : 0.0);
+    vec2 q = abs(p - origin - 0.5 * size) - 0.5 * size + vec2(r);
     vec2 c = max(q, vec2(0.0));
     float k = max(power, 1.0);
     float corner = pow(pow(c.x, k) + pow(c.y, k), 1.0 / k);
-    return corner + min(max(q.x, q.y), 0.0) - r;
+    float body = corner + min(max(q.x, q.y), 0.0) - r;
+    if (tail.z < 0.5 || tail.y < 0.5)
+        return body;
+    // The pointer reaches into the body so the two always meet; its apex is
+    // rounded a little, and a smooth union fillets the joints.
+    float reach = tail.z + 4.0;
+    vec2 local = vec2(p.x - tail.x, tail.w > 0.0 ? itemSize.y - p.y : p.y);
+    float point = triangle(local - vec2(0.0, 1.0), vec2(tail.y * reach / tail.z, reach)) - 1.0;
+    float f = 3.0;
+    float h = clamp(0.5 + 0.5 * (point - body) / f, 0.0, 1.0);
+    return mix(point, body, h) - f * h * (1.0 - h);
 }
 
 void main() {
