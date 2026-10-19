@@ -17,6 +17,12 @@ import "../core"
  * Integration is semi-implicit Euler in ≤ 1/240 s substeps, driven by a
  * FrameAnimation that runs only while unsettled, so an idle spring costs
  * nothing. Under Reduce Motion it snaps to the target.
+ *
+ * Until its first frame a spring jumps to new targets: what settles while
+ * an item is being built (another spring placing itself, a press state
+ * derived from it) must not play as motion nobody caused — Settings'
+ * controls used to wobble each time a page opened. An explicit `snap()`
+ * (an entrance that starts somewhere on purpose) animates right away.
  */
 QtObject {
     id: root
@@ -29,6 +35,7 @@ QtObject {
     property real value: 0
     property real velocity: 0
     readonly property bool settled: !driver.running
+    property bool born: false
 
     /**
      * Jump to `v` at rest. If `v` isn't the target, the spring then moves on
@@ -36,6 +43,7 @@ QtObject {
      * target was already set and didn't change.
      */
     function snap(v) {
+        born = true;
         driver.stop();
         velocity = 0;
         value = v;
@@ -43,14 +51,27 @@ QtObject {
             driver.start();
     }
 
+    function settle() {
+        driver.stop();
+        velocity = 0;
+        value = to;
+    }
+
     onToChanged: {
-        if (Motion.reduced)
-            snap(to);
+        if (Motion.reduced || !born)
+            settle();
         else if (value !== to)
             driver.start();
     }
 
-    Component.onCompleted: snap(to)
+    Component.onCompleted: settle()
+    property FrameAnimation birth: FrameAnimation {
+        running: true
+        onTriggered: {
+            root.born = true;
+            stop();
+        }
+    }
 
     property FrameAnimation driver: FrameAnimation {
         onTriggered: {
