@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Widgets
 import "../core"
 import "../components"
 import "../services"
@@ -21,7 +22,10 @@ import "../core/search.mjs" as Search
  *   ↑/↓) with an overlay scroll bar. An
  *   arithmetic expression shows its result first; Return copies it.
  * - Clipboard mode: the clipboard history (cliphist), newest first, filtered
- *   as you type; Return copies the entry back.
+ *   as you type; Return copies the entry back. The glass widens into two
+ *   columns: the list, images with a thumbnail, and a preview of the chosen
+ *   entry (pointer or ↑/↓) — the image fitted, or the whole text — over a
+ *   line that says what it is.
  *
  * ↑/↓ move up/down the list, Return opens or copies, Tab switches mode, Esc or a click
  * outside closes. It materializes, as Liquid Glass does: the glass comes in
@@ -46,6 +50,9 @@ PanelWindow {
     }
     function open(m) {
         mode = m;
+        // Opening in the other mode: start at its width, not morphing to it.
+        if (!visible)
+            breadth.snap(breadth.to);
         field.text = "";
         selected = 0;
         wanted = true;
@@ -85,7 +92,13 @@ PanelWindow {
     WlrLayershell.namespace: "aurora-launcher"
     WlrLayershell.keyboardFocus: wanted ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
-    readonly property real panelWidth: 640
+    SpringValue {
+        id: breadth
+        to: root.mode === "clipboard" ? 900 : 640
+        preset: Motion.smooth
+        epsilon: 0.5
+    }
+    readonly property real panelWidth: breadth.value
     readonly property real rowHeight: 40
     readonly property int maxRows: 8
 
@@ -106,6 +119,7 @@ PanelWindow {
         return list;
     }
     onRowsChanged: selected = Math.min(selected, Math.max(0, rows.length - 1))
+    readonly property var current: rows[selected] ?? null
 
     readonly property string sectionTitle: mode === "clipboard" ? I18n.tr("launcher.clipboard")
         : field.text.trim().length ? I18n.tr("launcher.applications") : I18n.tr("launcher.suggestions")
@@ -143,17 +157,81 @@ PanelWindow {
                     if (tab < 0)
                         continue;
                     const preview = line.slice(tab + 1);
-                    const image = preview.match(/^\[\[ binary data .* (\d+x\d+) \]\]$/);
+                    // "[[ binary data 501 KiB png 2816x1688 ]]"
+                    const image = preview.match(/^\[\[ binary data (\S+ \S+) \S+ (\d+x\d+) \]\]$/);
                     out.push({
                         kind: "clip",
                         line,
-                        title: image ? I18n.tr("launcher.image", { size: image[1].replace("x", "×") }) : preview.trim(),
+                        id: line.slice(0, tab),
+                        image: !!image,
+                        size: image ? image[2].replace("x", "×") : "",
+                        bytes: image ? image[1].replace("iB", "B") : "",
+                        title: image ? I18n.tr("launcher.image", { size: image[2].replace("x", "×") }) : preview.trim(),
                         subtitle: ""
                     });
                 }
                 history.items = out;
+                // shortcut: only the newest 100 entries get images (what an empty search lists); widen if searching old ones matters.
+                thumbs.command = ["sh", "-c", thumbs.script, "_", thumbs.dir].concat(out.slice(0, 100).filter(i => i.image).map(i => i.line));
+                thumbs.running = false;
+                thumbs.running = true;
             }
         }
+    }
+
+    // The listed images, decoded once into a cache the thumbnails and the
+    // preview read, newest first; each shows as soon as it's there. What's no
+    // longer listed is dropped.
+    Process {
+        id: thumbs
+        /** Ids whose image is in the cache. */
+        property var decoded: ({})
+        readonly property string dir: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/aurora-clipboard"
+        readonly property string script: 'd="$1"; shift; mkdir -p "$d" && cd "$d" || exit 1; ids=" "; '
+            + 'for l in "$@"; do id=${l%%\t*}; ids="$ids$id "; '
+            + '[ -s "$id" ] || { printf "%s" "$l" | cliphist decode > "$id.part" && mv "$id.part" "$id"; }; '
+            + '[ -s "$id" ] && echo "$id"; done; '
+            + 'for f in *; do case "$ids" in *" $f "*) ;; *) rm -f -- "$f";; esac; done'
+        stdout: SplitParser {
+            onRead: id => thumbs.decoded = Object.assign({}, thumbs.decoded, { [id]: true })
+        }
+    }
+    function imageOf(row) {
+        return row && row.image && thumbs.decoded[row.id] ? "file://" + thumbs.dir + "/" + row.id : "";
+    }
+
+    // The chosen text in full (the list only has cliphist's first line):
+    // its length, then up to 20k of it.
+    Process {
+        id: fullText
+        property string line: ""
+        property int count: 0
+        property string text: ""
+        command: ["sh", "-c", 't=$(printf "%s" "$1" | cliphist decode); printf "%s\n" "${#t}"; printf "%s" "$t" | head -c 20000', "_", line]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const nl = this.text.indexOf("\n");
+                fullText.count = Number(this.text.slice(0, nl)) || 0;
+                fullText.text = this.text.slice(nl + 1);
+            }
+        }
+    }
+    // Rows pass under the pointer quickly: decode the one it stays on.
+    Timer {
+        id: fullTextSoon
+        interval: 60
+        onTriggered: {
+            fullText.running = false;
+            fullText.running = true;
+        }
+    }
+    onCurrentChanged: {
+        if (mode !== "clipboard" || !current || current.image || current.line === fullText.line)
+            return;
+        fullText.line = current.line;
+        fullText.text = current.title;
+        fullText.count = current.title.length;
+        fullTextSoon.restart();
     }
 
     // --- Scene ---------------------------------------------------------------------
@@ -303,7 +381,9 @@ PanelWindow {
             visible: root.showResults
             y: 0
             width: parent.width
-            readonly property real wantedHeight: header.height + (root.rows.length ? Math.min(root.rows.length, root.maxRows) * root.rowHeight : root.rowHeight) + Tokens.space.m * 2
+            // The clipboard keeps its full height: the preview needs the room.
+            readonly property int shownRows: root.mode === "clipboard" ? root.maxRows : Math.min(root.rows.length, root.maxRows)
+            readonly property real wantedHeight: header.height + (root.rows.length ? shownRows * root.rowHeight : root.rowHeight) + Tokens.space.m * 2
             SpringValue { id: grow; to: results.wantedHeight; preset: Motion.smooth; epsilon: 0.5 }
             height: Math.max(1, grow.value)
 
@@ -350,7 +430,7 @@ PanelWindow {
                 ListView {
                     id: listView
                     y: header.height
-                    width: parent.width
+                    width: root.mode === "clipboard" ? Math.round(parent.width * 0.46) : parent.width
                     height: parent.height - header.height
                     model: root.rows
                     // Rows scrolled past the top stay under the section title.
@@ -385,6 +465,22 @@ PanelWindow {
                             width: 28
                             height: 28
 
+                            // An image clip: its thumbnail.
+                            ClippingRectangle {
+                                id: thumb
+                                anchors.fill: parent
+                                visible: thumbImage.status === Image.Ready
+                                radius: 6
+                                color: "transparent"
+                                Image {
+                                    id: thumbImage
+                                    anchors.fill: parent
+                                    source: root.imageOf(row.modelData)
+                                    sourceSize: Qt.size(56, 56)
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                }
+                            }
                             Image {
                                 id: appIcon
                                 anchors.fill: parent
@@ -396,7 +492,7 @@ PanelWindow {
                                 asynchronous: true
                             }
                             Icon {
-                                visible: !appIcon.visible
+                                visible: !appIcon.visible && !thumb.visible
                                 anchors.centerIn: parent
                                 glyph: row.modelData.kind === "calc" ? Glyphs.equals : row.modelData.kind === "clip" ? Glyphs.clipboard : Glyphs.apps
                                 size: 18
@@ -443,6 +539,67 @@ PanelWindow {
                     }
                 }
                 ScrollIndicator { flickable: listView; outside: false }
+
+                // The chosen clip, in full.
+                Item {
+                    id: preview
+                    visible: root.mode === "clipboard" && !!root.current
+                    x: listView.width + Tokens.space.l
+                    y: header.height
+                    width: parent.width - x
+                    height: parent.height - y
+
+                    Rectangle {
+                        x: -Tokens.space.l / 2
+                        width: 1
+                        height: parent.height
+                        color: Tokens.separator
+                    }
+
+                    Item {
+                        id: previewBody
+                        anchors.fill: parent
+                        anchors.leftMargin: Tokens.space.s
+                        anchors.rightMargin: Tokens.space.s
+                        anchors.bottomMargin: previewInfo.height + Tokens.space.m
+
+                        Image {
+                            anchors.fill: parent
+                            visible: !!root.current?.image
+                            source: root.imageOf(root.current)
+                            sourceSize: Qt.size(width * 2, height * 2)
+                            fillMode: Image.PreserveAspectFit
+                            asynchronous: true
+                        }
+                        Text {
+                            anchors.fill: parent
+                            visible: !root.current?.image
+                            text: root.current && fullText.line === root.current.line ? fullText.text : root.current?.title ?? ""
+                            textFormat: Text.PlainText
+                            wrapMode: Text.WrapAnywhere
+                            elide: Text.ElideRight
+                            color: Tokens.label
+                            font.family: Tokens.family
+                            font.pixelSize: Tokens.type.callout.size
+                        }
+                    }
+
+                    // i18n-keys: launcher.previewText launcher.previewTextOne
+                    Text {
+                        id: previewInfo
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: Tokens.space.xs
+                        x: Tokens.space.s
+                        width: parent.width - 2 * Tokens.space.s
+                        text: !root.current ? ""
+                            : root.current.image ? I18n.tr("launcher.previewImage", { size: root.current.size, bytes: root.current.bytes })
+                            : I18n.tr(fullText.count === 1 ? "launcher.previewTextOne" : "launcher.previewText", { count: fullText.count })
+                        color: Tokens.secondaryLabel
+                        font.family: Tokens.family
+                        font.pixelSize: Tokens.type.subheadline.size
+                        elide: Text.ElideRight
+                    }
+                }
             }
         }
     }
