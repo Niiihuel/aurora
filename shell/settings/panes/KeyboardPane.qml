@@ -12,8 +12,9 @@ import ".."
  * keys), searchable, each with its keycaps. Click one and type the new
  * combination; a shortcut already in use asks before taking it over; a
  * changed one can be restored, or all at once. The user's own shortcuts
- * (a name and a command) are changed and removed at the end, and added
- * in the New Shortcut modal (dialogs/ShortcutDialog). The
+ * (a name and a command) are added with the button at the top, in the New
+ * Shortcut modal (dialogs/ShortcutDialog), and changed and removed at the
+ * end. The
  * switcher, media keys and mouse are listed but fixed. See services/Keybinds.
  */
 Column {
@@ -142,10 +143,23 @@ Column {
     Column {
         width: parent.width
         spacing: Tokens.space.m
-        SearchField {
-            width: Math.min(parent.width, 320)
-            placeholder: I18n.tr("settings.keys.search")
-            onTextChanged: root.query = text
+        Item {
+            width: parent.width
+            height: Math.max(search.height, addButton.height)
+            SearchField {
+                id: search
+                anchors.verticalCenter: parent.verticalCenter
+                width: Math.min(parent.width - addButton.width - Tokens.space.l, 320)
+                placeholder: I18n.tr("settings.keys.search")
+                onTextChanged: root.query = text
+            }
+            Button {
+                id: addButton
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                text: I18n.tr("settings.keys.add")
+                onClicked: Dialogs.addShortcut()
+            }
         }
         Text {
             x: Tokens.space.m
@@ -193,9 +207,11 @@ Column {
 
     SettingsGroup {
         id: ownGroup
+        visible: ownRows.count > 0
         title: I18n.tr("settings.keys.group.own")
 
         Repeater {
+            id: ownRows
             model: Keybinds.own.map((o, i) => ({ id: "run." + (i + 1), o })).filter(r => root.matches(r.id, r.o.keys))
             delegate: SettingsRow {
                 id: ownRow
@@ -215,11 +231,6 @@ Column {
             }
         }
 
-        SettingsRow {
-            title: I18n.tr("settings.keys.add")
-            interactive: true
-            onClicked: Dialogs.addShortcut()
-        }
     }
 
     SettingsGroup {
