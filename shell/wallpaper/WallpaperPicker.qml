@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Hyprland
@@ -24,6 +25,11 @@ import "../services"
  *
  * ←/→ or the wheel move, Return or a click on the chosen one applies, a click
  * on a neighbour moves to it, Esc or a click outside closes.
+ *
+ * The last tile is +: it opens the system's file dialog (pictures, several
+ * at once, from Downloads) with the picker stepped aside; what you choose is
+ * copied into ~/wallpapers, and the picker comes back on the first of them
+ * and applies it. Cancelling comes back on the +.
  */
 PanelWindow {
     id: root
@@ -33,13 +39,23 @@ PanelWindow {
     /** The chosen picture's path, so a rescan that reorders the list keeps it. */
     property string chosen: ""
     readonly property var files: Wallpaper.files
+    /** The pictures, then the + tile (""). */
+    readonly property var tiles: files.concat([""])
+    readonly property int addIndex: files.length
+    /** A picture just added: applied as soon as it's listed. */
+    property string pendingApply: ""
 
     onSelectedChanged: chosen = files[selected] || ""
-    // The rescan on open can land after it (a new download shifts the list): stay on the same picture.
+    // The rescan on open can land after it (a new download shifts the list):
+    // stay on the same picture, or on the + tile.
     onFilesChanged: {
         const i = files.indexOf(chosen);
-        selected = Math.max(0, i >= 0 ? i : Math.min(selected, files.length - 1));
+        selected = !chosen.length ? addIndex : Math.max(0, i >= 0 ? i : Math.min(selected, addIndex));
         slide.snap(selected);
+        if (i >= 0 && pendingApply === chosen) {
+            pendingApply = "";
+            Qt.callLater(apply);
+        }
     }
 
     function toggle() {
@@ -57,11 +73,14 @@ PanelWindow {
     }
 
     function move(step) {
-        if (files.length)
-            selected = Math.max(0, Math.min(files.length - 1, selected + step));
+        selected = Math.max(0, Math.min(addIndex, selected + step));
     }
 
     function apply() {
+        if (selected === addIndex) {
+            add();
+            return;
+        }
         const path = files[selected];
         if (!path)
             return;
@@ -70,6 +89,39 @@ PanelWindow {
         Wallpaper.apply(path, centre.x / root.width, centre.y / root.height);
         lens.bumping = true;
         bump.restart();
+    }
+
+    /** The + tile: the picker steps aside for the file dialog (it holds the keyboard). */
+    function add() {
+        shown = false;
+        chooser.running = true;
+    }
+    Process {
+        id: chooser
+        command: ["kdialog", "--title", I18n.tr("wallpaper.addTitle"), "--multiple", "--separate-output",
+            "--getopenfilename", Quickshell.env("HOME") + "/Downloads", "image/jpeg image/png image/webp"]
+        stdout: StdioCollector {
+            id: chooserOut
+        }
+        onExited: code => {
+            const paths = code === 0 ? chooserOut.text.split("\n").filter(p => p.length) : [];
+            if (paths.length) {
+                const first = Wallpaper.dir + "/" + paths[0].slice(paths[0].lastIndexOf("/") + 1);
+                root.chosen = first;
+                root.pendingApply = first;
+                Wallpaper.add(paths);
+                // Already there by that name: nothing new gets listed, so go to it now.
+                const i = root.files.indexOf(first);
+                if (i >= 0) {
+                    root.pendingApply = "";
+                    root.selected = i;
+                    slide.snap(i);
+                    Qt.callLater(root.apply);
+                }
+            }
+            root.shown = true;
+            Qt.callLater(() => keys.forceActiveFocus());
+        }
     }
 
     GlobalShortcut { appid: "aurora"; name: "wallpaperPicker"; description: "Choose a wallpaper"; onPressed: root.toggle() }
@@ -171,15 +223,6 @@ PanelWindow {
             track: [panel.scale]
         }
 
-        Text {
-            visible: !root.files.length
-            anchors.centerIn: parent
-            text: I18n.tr("wallpaper.empty")
-            color: Tokens.secondaryLabel
-            font.family: Tokens.family
-            font.pixelSize: Tokens.type.body.size
-        }
-
         // The lens around the chosen wallpaper (it answers an apply with a press).
         Glass {
             id: lens
@@ -188,7 +231,6 @@ PanelWindow {
             height: root.focusHeight + 2 * pad
             x: (panel.width - width) / 2
             y: 20 - pad
-            visible: root.files.length > 0
             backdrop: pickerBackdrop
             material: Tokens.glass.lens
             liftedMaterial: Object.assign({}, Tokens.glass.lens, { magnify: 1.18 })
@@ -213,11 +255,12 @@ PanelWindow {
             clip: true
 
             Repeater {
-                model: root.files
+                model: root.tiles
                 delegate: Item {
                     id: tile
                     required property string modelData
                     required property int index
+                    readonly property bool adder: !modelData.length
                     /** Distance from the chosen one, fractional while gliding. */
                     readonly property real d: index - slide.value
                     readonly property real ad: Math.abs(d)
@@ -240,7 +283,7 @@ PanelWindow {
                             id: picture
                             anchors.fill: parent
                             // Kept decoded while closed (a few MB): reopening shows them at once.
-                            source: tile.ad < 5 ? "file://" + tile.modelData : ""
+                            source: tile.ad < 5 && !tile.adder ? "file://" + tile.modelData : ""
                             sourceSize: Qt.size(root.focusWidth * 1.5, root.focusHeight * 1.5)
                             fillMode: Image.PreserveAspectCrop
                             asynchronous: true
@@ -248,10 +291,18 @@ PanelWindow {
                         }
                         // Neighbours lose colour and light with distance.
                         MultiEffect {
+                            visible: !tile.adder
                             anchors.fill: parent
                             source: picture
                             saturation: -0.75 * Math.min(1, tile.ad)
                             brightness: -0.25 * Math.min(1, tile.ad)
+                        }
+                        Icon {
+                            visible: tile.adder
+                            anchors.centerIn: parent
+                            glyph: Glyphs.plus
+                            size: 44
+                            color: Tokens.secondaryLabel
                         }
                     }
 
@@ -275,6 +326,8 @@ PanelWindow {
             width: root.focusWidth
             horizontalAlignment: Text.AlignHCenter
             text: {
+                if (root.selected === root.addIndex)
+                    return I18n.tr("wallpaper.add");
                 const path = root.files[root.selected] || "";
                 return path.slice(path.lastIndexOf("/") + 1).replace(/\.[^.]+$/, "");
             }

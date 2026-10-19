@@ -18,7 +18,8 @@ import "../core"
  * chosen thumbnail's centre, so the new wallpaper spreads out of it like a
  * drop — and publishes a copy for the login screen, which can't read $HOME
  * (/var/lib/aurora/login, writable by the user and readable by the greeter).
- * `next` (Super+B) applies another one at random.
+ * `next` (Super+B) applies another one at random. `add` copies pictures in
+ * (the picker's + tile).
  */
 Singleton {
     id: root
@@ -29,20 +30,48 @@ Singleton {
     /** Image paths, newest first. */
     property var files: []
 
+    /**
+     * The last change made here (picker, Super+B): where its circle grows
+     * from, in fractions of the screen from the top-left, so glass can grow
+     * the new wallpaper in step with the daemon (GlassBackdrop). `serial`
+     * tells such a change from a refresh. The timing is the daemon's.
+     */
+    property var transition: ({ serial: 0, fx: 0.5, fy: 0.5 })
+    readonly property real transitionSeconds: 1.1
+    readonly property var transitionCurve: [0.32, 0.72, 0, 1]
+
     function rescan() {
         if (!scan.running)
             scan.running = true;
     }
 
     function apply(path, fx, fy) {
+        fx = Math.max(0, Math.min(1, fx));
+        fy = Math.max(0, Math.min(1, fy));
+        // Before the paths: glass reads it when they change.
+        transition = { serial: transition.serial + 1, fx, fy };
         const map = {};
         for (const s of Quickshell.screens)
             map[s.name] = path;
         byOutput = map;
         Quickshell.execDetached(["sh", "-c",
-            "awww img \"$1\" --transition-type grow --transition-pos \"$2,$3\" --transition-duration 1.1 --transition-fps 120 --transition-bezier .32,.72,0,1",
-            "_", path, Math.max(0, Math.min(1, fx)).toFixed(3), Math.max(0, Math.min(1, 1 - fy)).toFixed(3)]);
+            "awww img \"$1\" --transition-type grow --transition-pos \"$2,$3\" --transition-duration \"$4\" --transition-fps 120 --transition-bezier \"$5\"",
+            "_", path, fx.toFixed(3), (1 - fy).toFixed(3), String(transitionSeconds), transitionCurve.join(",")]);
         publish(path);
+    }
+
+    /** Copy pictures into ~/wallpapers (a name already there keeps its file), then list them again. */
+    function add(paths) {
+        adder.command = ["sh", "-c", 'd="$1"; shift; mkdir -p "$d" && cp --update=none -- "$@" "$d/"', "_", dir].concat(paths);
+        adder.running = true;
+    }
+    Process {
+        id: adder
+        // Restarted: a scan already under way could miss them.
+        onExited: {
+            scan.running = false;
+            scan.running = true;
+        }
     }
 
     /** Another wallpaper from ~/wallpapers, at random, growing from the middle. */

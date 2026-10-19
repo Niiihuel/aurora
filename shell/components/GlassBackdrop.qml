@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Widgets
 import "../core"
 import "../services"
 
@@ -14,6 +15,10 @@ import "../services"
  * the monitor's active workspace that `region` overlaps, stacked like
  * Hyprland stacks them. It is rendered at a quarter of the monitor's size and
  * blurred with two Gaussian passes.
+ *
+ * A wallpaper picked in aurora grows in here as the daemon draws it on the
+ * screen — a circle from where it was picked, same timing and curve — so the
+ * glass changes as the screen behind it does, not a second ahead of it.
  *
  * Place one inside every window that shows glass and set `screen` and
  * `origin` (the window's top-left on its monitor). The item positions itself
@@ -57,6 +62,35 @@ Item {
     /** The same scene unblurred, for the rim's refraction (a bent blur is invisible). */
     readonly property alias sharpTexture: sharp
     readonly property bool ready: wallpaper.status === Image.Ready
+
+    /** The wallpaper under the glass, and the one growing in over it. */
+    readonly property string wallpaperPath: screen ? Wallpaper.pathFor(screen.name) : ""
+    property string base: ""
+    property string incoming: ""
+    property int seenSerial: 0
+    onWallpaperPathChanged: {
+        const t = Wallpaper.transition;
+        grow.stop();
+        if (!base.length || Motion.reduced || t.serial === seenSerial) {
+            base = wallpaperPath;
+            incoming = "";
+            return;
+        }
+        seenSerial = t.serial;
+        // Picked again mid-transition: the one growing becomes the base.
+        if (incoming.length)
+            base = incoming;
+        reveal.r = 0;
+        incoming = wallpaperPath;
+        if (incomingImage.status === Image.Ready)
+            grow.restart();
+    }
+    function settleWallpaper() {
+        base = incoming;
+        // Keep the grown copy over it until the base has the new image too.
+        if (wallpaper.status === Image.Ready && wallpaper.source.toString() === "file://" + base)
+            incoming = "";
+    }
     readonly property real dpr: monitor ? monitor.scale : 1
     readonly property int captures: windows.length
     /** The window is on screen (a hidden one needs no captures). */
@@ -119,7 +153,11 @@ Item {
         return list;
     }
 
-    Component.onCompleted: Hyprland.refreshToplevels()
+    Component.onCompleted: {
+        base = wallpaperPath;
+        seenSerial = Wallpaper.transition.serial;
+        Hyprland.refreshToplevels();
+    }
 
     Connections {
         target: Hyprland
@@ -153,15 +191,54 @@ Item {
         Image {
             id: wallpaper
             anchors.fill: parent
-            source: {
-                const path = root.screen ? Wallpaper.pathFor(root.screen.name) : "";
-                return path.length ? "file://" + path : "";
-            }
+            source: root.base.length ? "file://" + root.base : ""
             // The blur works at quarter size; decoding more is wasted memory.
             sourceSize: Qt.size(Math.max(2, Math.round(root.width / 2)), Math.max(2, Math.round(root.height / 2)))
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             smooth: true
+            onStatusChanged: if (status === Image.Ready && root.incoming.length && root.incoming === root.base) root.incoming = ""
+        }
+
+        // The new wallpaper, growing out of where it was picked.
+        ClippingRectangle {
+            id: reveal
+            property real r: 0
+            readonly property point centre: Qt.point(Wallpaper.transition.fx * root.width, Wallpaper.transition.fy * root.height)
+            visible: root.incoming.length > 0
+            x: centre.x - r
+            y: centre.y - r
+            width: 2 * r
+            height: 2 * r
+            radius: r
+            color: "transparent"
+
+            Image {
+                id: incomingImage
+                x: -reveal.x
+                y: -reveal.y
+                width: root.width
+                height: root.height
+                source: root.incoming.length ? "file://" + root.incoming : ""
+                sourceSize: wallpaper.sourceSize
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                smooth: true
+                // Starts once decoded, about when the daemon starts drawing it.
+                onStatusChanged: if (status === Image.Ready && root.incoming.length && !grow.running && reveal.r === 0) grow.restart()
+            }
+        }
+        NumberAnimation {
+            id: grow
+            target: reveal
+            property: "r"
+            from: 0
+            // To the farthest corner: then the circle covers the screen.
+            to: Math.hypot(Math.max(reveal.centre.x, root.width - reveal.centre.x), Math.max(reveal.centre.y, root.height - reveal.centre.y))
+            duration: Wallpaper.transitionSeconds * 1000
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Wallpaper.transitionCurve.concat([1, 1])
+            onFinished: root.settleWallpaper()
         }
 
         Repeater {
