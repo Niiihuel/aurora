@@ -10,6 +10,12 @@ shell_dir="${1:-$(cd "$(dirname "$0")/../shell" && pwd)}"
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/aurora-session.lock"
 flock -n 9 || exit 0
 
+# Hyprland tags what it launches with the desktop on screen at that moment,
+# and the first window carrying the tag opens there. Everything the shell
+# launches would inherit the tag from login, so the first app opened after
+# logging in landed on the login's desktop instead of the one on screen.
+unset HL_INITIAL_WORKSPACE_TOKEN
+
 # The liquid glass window rims (plugins/rims). The system builds them against
 # the Hyprland it runs and says where (AURORA_RIMS_SO); one built for another
 # Hyprland refuses to load.
