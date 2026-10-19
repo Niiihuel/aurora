@@ -68,6 +68,7 @@ PanelWindow {
         case "network": return networkMenu;
         case "bluetooth": return bluetoothMenu;
         case "battery": return batteryMenu;
+        case "activity": return activityMenu;
         case "system": return systemMenu;
         case "app": return appMenu;
         case "controlCenter": return controlCenterMenu;
@@ -197,6 +198,11 @@ PanelWindow {
     Component {
         id: batteryMenu
         BatteryMenu { chrome: false; backdrop: menuBackdrop }
+    }
+
+    Component {
+        id: activityMenu
+        ActivityMenu { chrome: false; backdrop: menuBackdrop }
     }
 
     Component {

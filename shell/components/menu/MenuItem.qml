@@ -151,6 +151,8 @@ Item {
             color: root.highlighted && !root.blink ? Qt.rgba(1, 1, 1, 0.8) : Tokens.secondaryLabel
             font.family: Tokens.family
             font.pixelSize: Tokens.type.body.size
+            // Live values (a process's CPU) don't jitter.
+            font.features: ({ "tnum": 1 })
         }
 
         Icon {

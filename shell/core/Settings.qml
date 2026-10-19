@@ -33,6 +33,8 @@ Singleton {
     property alias locale: adapter.locale
     /** Show the battery percentage next to its menu bar icon. */
     property alias batteryPercent: adapter.batteryPercent
+    /** Show the activity extra (CPU graph and load) in the menu bar. */
+    property alias activityExtra: adapter.activityExtra
     /** Do Not Disturb: notifications arrive silently, without banners. */
     property alias doNotDisturb: adapter.doNotDisturb
     /** Play a sound when a notification arrives. */
@@ -101,6 +103,7 @@ Singleton {
             property string language: "es"
             property string locale: ""
             property bool batteryPercent: true
+            property bool activityExtra: true
             property bool doNotDisturb: false
             property bool notificationSounds: true
             property bool clockSeconds: true

@@ -22,6 +22,9 @@ import "../services"
  * In full-screen the bar slides away and leaves a 2 pt strip at the top edge;
  * touching it brings the bar back over the full-screen window until the
  * pointer leaves, like macOS.
+ *
+ * Centred: the activity extra, CPU, GPU and memory as rings (the user's
+ * call; macOS keeps the middle empty).
  */
 PanelWindow {
     id: bar
@@ -180,6 +183,43 @@ PanelWindow {
             }
         }
 
+        // What the computer is doing, centred like a status island: CPU, GPU
+        // and memory as rings. Its menu has the rest.
+        Row {
+            id: middle
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: parent.height
+
+            BarItem {
+                visible: Settings.activityExtra
+                menu: "activity"
+                screenName: bar.modelData.name
+                tip: [cpuRing, gpuRing, memoryRing].filter(r => r.visible)
+                    .map(r => I18n.tr("bar.tip.activity", { name: r.name, level: I18n.tr("common.percent", { n: Math.round(r.value * 100) }) }))
+                    .join(" · ")
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Tokens.space.l
+                    LoadRing {
+                        id: cpuRing
+                        name: I18n.tr("activity.cpu")
+                        value: ActivityStatus.cpu
+                    }
+                    LoadRing {
+                        id: gpuRing
+                        visible: ActivityStatus.gpuBusy >= 0
+                        name: I18n.tr("activity.gpu")
+                        value: Math.max(0, ActivityStatus.gpuBusy)
+                    }
+                    LoadRing {
+                        id: memoryRing
+                        name: I18n.tr("activity.memoryShort")
+                        value: ActivityStatus.memTotal > 0 ? ActivityStatus.memUsed / ActivityStatus.memTotal : 0
+                    }
+                }
+            }
+        }
+
         Row {
             id: trailing
             anchors.right: parent.right
@@ -332,7 +372,7 @@ PanelWindow {
             if (Menus.screen !== bar.modelData.name)
                 return;
             const items = [];
-            for (const row of [leading, trailing])
+            for (const row of [leading, middle, trailing])
                 for (const child of row.children)
                     if (child.visible && child.menu && child.menu.length)
                         items.push(child);
@@ -357,9 +397,29 @@ PanelWindow {
                         return child;
                 return null;
             };
-            const item = find(leading) ?? find(trailing);
+            const item = find(leading) ?? find(middle) ?? find(trailing);
             if (item)
                 Menus.toggle(item.menu, bar.modelData.name, item.anchor(), item.width);
+        }
+    }
+
+    /** One of the activity extra's loads: its ring and short name. */
+    component LoadRing: Row {
+        property string name: ""
+        property real value: 0
+        anchors.verticalCenter: parent ? parent.verticalCenter : undefined
+        spacing: Tokens.space.xs
+        ActivityRing {
+            anchors.verticalCenter: parent.verticalCenter
+            value: parent.value
+        }
+        Text {
+            anchors.verticalCenter: parent.verticalCenter
+            text: parent.name
+            color: Tokens.label
+            font.family: Tokens.family
+            font.pixelSize: Tokens.type.subheadline.size
+            font.weight: Font.Medium
         }
     }
 

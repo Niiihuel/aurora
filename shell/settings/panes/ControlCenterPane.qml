@@ -18,6 +18,13 @@ Column {
             }
         }
         SettingsRow {
+            title: I18n.tr("settings.controlCenter.activity")
+            MenuSwitch {
+                checked: Settings.activityExtra
+                onToggled: on => Settings.activityExtra = on
+            }
+        }
+        SettingsRow {
             title: I18n.tr("settings.controlCenter.seconds")
             MenuSwitch {
                 checked: Settings.clockSeconds

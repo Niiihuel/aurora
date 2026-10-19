@@ -13,7 +13,7 @@ It's a personal desktop, published so others can read it, borrow ideas or run it
 ## What's in it
 
 - **Liquid glass** (`shell/shaders/glass.frag`, `shell/components/Glass.qml`). A Wayland client can't read what's behind it, so each glass window rebuilds its backdrop: the wallpaper plus live screen captures of the windows under it, blurred, then refracted at a lit rim with chromatic dispersion. Interactive glass lifts under a press; control knobs lift into a magnifying lens while they move and land with a squash and a rebound.
-- **Menu bar.** The system menu, the frontmost app's menu (windows, desktops, quit), workspaces as page dots, other apps' tray extras with their menus, sound, Bluetooth, network and battery extras, Control Center and the clock.
+- **Menu bar.** The system menu, the frontmost app's menu (windows, desktops, quit), workspaces as page dots, CPU, GPU and memory as rings in the middle (their menu adds temperatures, network, disk and the top processes, which can be quit from there), other apps' tray extras with their menus, sound, Bluetooth, network and battery extras, Control Center and the clock.
 - **Menus.** Every menu and popover pops out of its button as a drop of glass, swells into its shape and melts back on close, with timings fitted frame by frame to Apple's WWDC25 footage.
 - **Control Center.** A panel of glass with toggles, sliders, Now Playing and pages for Wi-Fi, Bluetooth, sound outputs and power modes.
 - **Notifications.** Banners, and a Notification Center grouped by app with Clear All and a month calendar.

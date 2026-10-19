@@ -14,3 +14,4 @@ singleton Keybinds 1.0 Keybinds.qml
 singleton Capture 1.0 Capture.qml
 singleton Annotate 1.0 Annotate.qml
 singleton AppColors 1.0 AppColors.qml
+singleton ActivityStatus 1.0 ActivityStatus.qml

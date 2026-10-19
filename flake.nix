@@ -67,6 +67,11 @@
           ${pkgs.nodejs}/bin/node ${./shell/core}/keys.test.mjs
           touch $out
         '';
+        # The activity extra's /proc parsers (shell/core/activity.mjs).
+        activity = pkgs.runCommand "aurora-activity-check" { } ''
+          ${pkgs.nodejs}/bin/node ${./shell/core}/activity.test.mjs
+          touch $out
+        '';
       };
 
       devShells.${system}.default = pkgs.mkShell {
