@@ -16,7 +16,6 @@ Column {
     }
 
     SettingsGroup {
-        footer: I18n.tr("settings.lock.note")
         SettingsRow {
             title: I18n.tr("settings.lock.screenOff")
             ChoiceButton {
@@ -37,6 +36,7 @@ Column {
         }
         SettingsRow {
             title: I18n.tr("settings.lock.sleepAfter")
+            info: I18n.tr("settings.lock.note")
             ChoiceButton {
                 backdrop: root.backdrop
                 choices: root.choices()

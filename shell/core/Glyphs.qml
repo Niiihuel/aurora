@@ -295,6 +295,16 @@ Singleton {
         { d: "M4 11.25 V7.25 A4 4 0 0 1 12 7.25 V11.25 L13.25 12.5 H2.75 Z" },
         { d: "M6.75 14 A1.4 1.4 0 0 0 9.25 14" }
     ]
+    /** Add. */
+    readonly property var plus: [
+        { d: "M8 3 V13 M3 8 H13" }
+    ]
+    /** More about something: an i in a circle (components/InfoButton). */
+    readonly property var info: [
+        { d: "M8 1.5 A6.5 6.5 0 1 1 8 14.5 A6.5 6.5 0 1 1 8 1.5 Z" },
+        { d: "M8 4.85 m-0.95 0 a0.95 0.95 0 1 0 1.9 0 a0.95 0.95 0 1 0 -1.9 0", fill: true },
+        { d: "M8 7.4 V11.4" }
+    ]
     /** Search. */
     readonly property var magnifier: [
         { d: "M7 2.25 A4.75 4.75 0 1 1 7 11.75 A4.75 4.75 0 1 1 7 2.25 Z" },

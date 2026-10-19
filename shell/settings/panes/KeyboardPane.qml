@@ -140,35 +140,30 @@ Column {
         }
     }
 
-    Column {
+    // The search, how to change a shortcut (ⓘ), and adding one.
+    Item {
         width: parent.width
-        spacing: Tokens.space.m
-        Item {
-            width: parent.width
-            height: Math.max(search.height, addButton.height)
-            SearchField {
-                id: search
-                anchors.verticalCenter: parent.verticalCenter
-                width: Math.min(parent.width - addButton.width - Tokens.space.l, 320)
-                placeholder: I18n.tr("settings.keys.search")
-                onTextChanged: root.query = text
-            }
-            Button {
-                id: addButton
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                text: I18n.tr("settings.keys.add")
-                onClicked: Dialogs.addShortcut()
-            }
+        height: Math.max(search.height, addButton.height)
+        SearchField {
+            id: search
+            anchors.verticalCenter: parent.verticalCenter
+            width: Math.min(parent.width - addButton.width - keysInfo.width - 2 * Tokens.space.l, 320)
+            placeholder: I18n.tr("settings.keys.search")
+            onTextChanged: root.query = text
         }
-        Text {
-            x: Tokens.space.m
-            width: parent.width - 2 * Tokens.space.m
+        InfoButton {
+            id: keysInfo
+            anchors.left: search.right
+            anchors.leftMargin: Tokens.space.m
+            anchors.verticalCenter: parent.verticalCenter
             text: I18n.tr("settings.keys.note")
-            color: Tokens.secondaryLabel
-            font.family: Tokens.family
-            font.pixelSize: Tokens.type.subheadline.size
-            wrapMode: Text.Wrap
+        }
+        Button {
+            id: addButton
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            text: I18n.tr("settings.keys.add")
+            onClicked: Dialogs.addShortcut()
         }
     }
 

@@ -29,7 +29,7 @@ Column {
 
     SettingsGroup {
         title: I18n.tr("settings.displays.nightLight")
-        footer: I18n.tr("settings.displays.nightLightNote")
+        info: I18n.tr("settings.displays.nightLightNote")
         SettingsRow {
             title: I18n.tr("settings.displays.nightLightOn")
             MenuSwitch {

@@ -7,13 +7,15 @@ import "../components"
  * on the leading side, the control (a switch, a slider, a choice, a value)
  * on the trailing side. Rows after the first in their group draw the hairline
  * above them, inset to the text, as macOS does. `clicked` fires for rows
- * that are actions as a whole (`interactive`).
+ * that are actions as a whole (`interactive`). `info` puts an ⓘ after the
+ * title with more about the setting.
  */
 Item {
     id: root
 
     property string title: ""
     property string subtitle: ""
+    property string info: ""
     property var glyph: null
     /** An image instead of the glyph (an app's own icon). */
     property string image: ""
@@ -87,13 +89,23 @@ Item {
         x: root.glyph || root.image.length || root.busy ? Tokens.space.l + 24 + Tokens.space.m : Tokens.space.l
         anchors.verticalCenter: parent.verticalCenter
         width: control.x - x - Tokens.space.m
-        Text {
+        Row {
             width: parent.width
-            text: root.title
-            color: Tokens.label
-            font.family: Tokens.family
-            font.pixelSize: Tokens.type.body.size
-            elide: Text.ElideRight
+            spacing: Tokens.space.s
+            Text {
+                width: Math.min(implicitWidth, parent.width - (rowInfo.visible ? rowInfo.width + parent.spacing : 0))
+                text: root.title
+                color: Tokens.label
+                font.family: Tokens.family
+                font.pixelSize: Tokens.type.body.size
+                elide: Text.ElideRight
+            }
+            InfoButton {
+                id: rowInfo
+                visible: root.info.length > 0
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.info
+            }
         }
         Text {
             width: parent.width

@@ -53,7 +53,7 @@ Column {
 
     SettingsGroup {
         title: I18n.tr("settings.general.update")
-        footer: I18n.tr("settings.general.updateNote")
+        info: I18n.tr("settings.general.updateNote")
         SettingsRow {
             title: I18n.tr("settings.general.updateSystem")
             subtitle: "nixos-rebuild switch --flake ~/dotfiles#nixos"

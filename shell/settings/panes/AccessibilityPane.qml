@@ -10,9 +10,9 @@ Column {
     spacing: Tokens.space.xl
 
     SettingsGroup {
-        footer: I18n.tr("settings.accessibility.note")
         SettingsRow {
             title: I18n.tr("settings.accessibility.reduceMotion")
+            info: I18n.tr("settings.accessibility.reduceMotionInfo")
             MenuSwitch {
                 checked: Settings.reduceMotion
                 onToggled: on => {
@@ -23,6 +23,7 @@ Column {
         }
         SettingsRow {
             title: I18n.tr("settings.accessibility.reduceTransparency")
+            info: I18n.tr("settings.accessibility.reduceTransparencyInfo")
             MenuSwitch {
                 checked: Settings.reduceTransparency
                 onToggled: on => Settings.reduceTransparency = on

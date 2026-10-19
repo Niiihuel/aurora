@@ -9,9 +9,9 @@ Column {
     spacing: Tokens.space.xl
 
     SettingsGroup {
-        footer: I18n.tr("settings.notifications.dndNote")
         SettingsRow {
             title: I18n.tr("controlCenter.focus")
+            info: I18n.tr("settings.notifications.dndNote")
             glyph: Glyphs.moon
             MenuSwitch {
                 checked: Settings.doNotDisturb

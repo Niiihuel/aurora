@@ -32,7 +32,7 @@ Column {
     // i18n-keys: settings.apps.state.checking settings.apps.state.preparing settings.apps.state.available settings.apps.state.uptodate settings.apps.state.building settings.apps.state.done settings.apps.state.failed
     SettingsGroup {
         title: I18n.tr("settings.apps.updates")
-        footer: I18n.tr("settings.apps.updatesNote")
+        info: I18n.tr("settings.apps.updatesNote")
         SettingsRow {
             title: Packages.state === "available"
                 ? I18n.tr("settings.apps.state.available", { n: Packages.updates.length })
@@ -92,7 +92,7 @@ Column {
     // i18n-keys: settings.apps.uninstallMessage.managed settings.apps.uninstallMessage.profile settings.apps.uninstallMessage.local settings.apps.uninstallMessage.removable
     SettingsGroup {
         title: I18n.tr("settings.apps.installed", { n: root.apps.length })
-        footer: I18n.tr("settings.apps.note")
+        info: I18n.tr("settings.apps.note")
         Repeater {
             model: root.apps
             delegate: SettingsRow {

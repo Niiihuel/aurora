@@ -31,7 +31,7 @@ Column {
 
     SettingsGroup {
         title: I18n.tr("settings.wallpaper.yours")
-        footer: I18n.tr("settings.wallpaper.note")
+        info: I18n.tr("settings.wallpaper.note")
 
         Flow {
             width: parent.width

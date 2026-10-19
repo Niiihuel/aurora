@@ -1,30 +1,41 @@
 import QtQuick
 import "../core"
+import "../components"
 
 /**
  * A group of settings rows, after macOS System Settings: an optional title
  * above, then the rows on one rounded plate, separated by hairlines that
  * start where the row's text starts. Put SettingsRow items (or anything
- * row-sized) inside.
+ * row-sized) inside. `info` puts an ⓘ next to the title with more about the
+ * group; `footer` is for what must stay in sight.
  */
 Column {
     id: root
 
     property string title: ""
     property string footer: ""
+    property string info: ""
     default property alias rows: list.data
 
     width: parent ? parent.width : 0
     spacing: Tokens.space.s
 
-    Text {
+    Row {
         visible: root.title.length > 0
         x: Tokens.space.m
-        text: root.title
-        color: Tokens.label
-        font.family: Tokens.family
-        font.pixelSize: Tokens.type.body.size
-        font.weight: Font.DemiBold
+        spacing: Tokens.space.s
+        Text {
+            text: root.title
+            color: Tokens.label
+            font.family: Tokens.family
+            font.pixelSize: Tokens.type.body.size
+            font.weight: Font.DemiBold
+        }
+        InfoButton {
+            visible: root.info.length > 0
+            anchors.verticalCenter: parent.verticalCenter
+            text: root.info
+        }
     }
 
     Rectangle {
